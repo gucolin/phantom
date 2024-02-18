@@ -6,6 +6,9 @@ import {
   dialog,
   Menu,
   MenuItem,
+  Tray,
+  nativeImage,
+  nativeTheme,
 } from "electron";
 import { release } from "node:os";
 import { join } from "node:path";
@@ -51,6 +54,7 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 let win: BrowserWindow | null = null;
+let tray;
 
 const preload = join(__dirname, "../preload/index.js");
 const url = process.env.VITE_DEV_SERVER_URL;
@@ -109,6 +113,20 @@ async function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  const theme = nativeTheme.shouldUseDarkColors ? "light" : "dark";
+  const iconPath = path.join(__dirname, `../../public/phantom-${theme}.png`);
+
+  tray = new Tray(iconPath);
+
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'Item1', type: 'radio' },
+    { label: 'Item2', type: 'radio' },
+    { label: 'Item3', type: 'radio', checked: true },
+    { label: 'Item4', type: 'radio' }
+  ])
+
+  tray.setToolTip('This is my application.')
+  tray.setContextMenu(contextMenu)
   createWindow();
 });
 
