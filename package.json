@@ -66,6 +66,7 @@
     "react-rnd": "^10.4.1",
     "react-toastify": "^10.0.4",
     "react-window": "^1.8.10",
+    "sass": "^1.71.0",
     "vectordb": "0.4.10"
   },
   "devDependencies": {
