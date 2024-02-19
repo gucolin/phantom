@@ -244,9 +244,9 @@ const FileItem: React.FC<FileInfoProps> = ({
       onDrop={handleDrop}
       onDragLeave={handleDragLeave}
     >
-      <div onClick={toggle} className={classNames("flex items-center cursor-pointer px-2 py-1 hover:bg-slate-400 h-full mt-0 mb-0 rounded", {
-        "bg-slate-300 text-slate-950 font-semibold": isSelected,
-        "text-slate-800": !isSelected,
+      <div onClick={toggle} className={classNames("flex items-center cursor-pointer px-2 py-1  h-full mt-0 mb-0 rounded transition-all", {
+        "bg-slate-700 text-slate-100 font-semibold hover:bg-slate-800 hover:text-slate-50": isSelected,
+        "text-slate-800 hover:bg-slate-300 hover:text-slate-800": !isSelected,
         "bg-blue-500": isDragOver,
       })}>
         {isDirectory && (
