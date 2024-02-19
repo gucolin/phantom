@@ -1,12 +1,11 @@
 import NewNoteComponent from "./File/NewNote";
 import React, { useEffect, useState } from "react";
-import { PiSidebar, PiSidebarFill } from "react-icons/pi";
-
-import { BsChatLeftDots, BsFillChatLeftDotsFill } from "react-icons/bs";
+import { FiDivideSquare, FiMessageSquare } from "react-icons/fi";
+import classNames from "classnames";
 
 export const titleBarHeight = "30px";
 interface TitleBarProps {
-  onFileSelect: (path: string) => void;
+  onFileSelect: (name: string, path: string) => void;
   chatbotOpen: boolean;
   similarFilesOpen: boolean;
   toggleChatbot: () => void;
@@ -37,7 +36,7 @@ const TitleBar: React.FC<TitleBarProps> = ({
   return (
     <div
       id="customTitleBar"
-      className={`h-titlebar bg-gray-900 flex justify-between`}
+      className={`h-titlebar bg-slate-50 flex justify-between border-b border-slate-200 border-solid`}
     >
       <div
         className=" flex"
@@ -55,38 +54,25 @@ const TitleBar: React.FC<TitleBarProps> = ({
       </div>
 
       <div
-        className="flex justify-content-right align-items-right"
+        className="flex gap-1 pr-2 py-[0.125rem]"
         style={platform === "win32" ? { marginRight: "8.5rem" } : {}}
       >
-        {similarFilesOpen ? (
-          <PiSidebarFill
-            className="text-gray-100 cursor-pointer mt-[0.1rem]"
-            size={28}
-            onClick={toggleSimilarFiles}
+        <button className={classNames("rounded px-2 py-1", {
+          "bg-slate-200": similarFilesOpen,
+        })} onClick={toggleSimilarFiles}>
+          <FiDivideSquare
+            className="text-slate-900 cursor-pointer text-base"
           />
-        ) : (
-          <PiSidebar
-            className="text-gray-100 cursor-pointer mt-[0.1rem]"
-            size={28}
-            onClick={toggleSimilarFiles}
-          />
-        )}
+        </button>
 
-        <div className="mt-[0.33rem] mr-[0.5rem] ml-[0.3rem]">
-          {chatbotOpen ? (
-            <BsFillChatLeftDotsFill
-              size={22}
-              className="text-gray-100 cursor-pointer"
-              onClick={toggleChatbot}
-            />
-          ) : (
-            <BsChatLeftDots
-              className="text-gray-100 cursor-pointer "
-              size={22}
-              onClick={toggleChatbot}
-            />
-          )}
-        </div>
+        <button className={classNames("rounded px-2 py-1", {
+            "bg-slate-200": chatbotOpen,
+          })}
+          onClick={toggleChatbot}>
+          <FiMessageSquare
+            className="text-slate-900 cursor-pointer text-base"
+          />
+        </button>
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ import { formatDistanceToNow } from "date-fns"; // for human-readable time forma
 
 interface DBResultPreview {
   dbResult: DBQueryResult;
-  onSelect: (path: string) => void;
+  onSelect: (name: string, path: string) => void;
 }
 
 export const DBResultPreview: React.FC<DBResultPreview> = ({
@@ -15,14 +15,14 @@ export const DBResultPreview: React.FC<DBResultPreview> = ({
   const modified = formatModifiedDate(entry.filemodified);
   return (
     <div
-      className="pr-2 pb-1 mt-0 text-white pt-1 rounded border-solid border-gray-600 bg-gray-800 border-[0.1px] pl-2 shadow-md cursor-pointer hover:scale-104 hover:shadow-lg hover:bg-[#262f3b] transition-transform duration-300"
-      onClick={() => onSelect(entry.notepath)}
+      className="pr-2 pb-1 mt-0 text-slate-950 pt-1 rounded border-solid border-slate-300 bg-slate-200 border-[0.1px] pl-2 cursor-pointer hover:scale-104 hover:bg-slate-300 transition-transform duration-300"
+      onClick={() => onSelect(getFileName(entry.notepath), entry.notepath)}
     >
-      <ReactMarkdown className="text-gray-200">{entry.content}</ReactMarkdown>
-      <div className="text-xs text-gray-400 mt-0">
+      <ReactMarkdown className="text-slate-800">{entry.content}</ReactMarkdown>
+      <div className="text-xs text-slate-600 mt-0">
         Similarity: {cosineDistanceToPercentage(entry._distance)}% |{" "}
         {modified && (
-          <span className="text-xs text-gray-400">Modified {modified}</span>
+          <span className="text-xs text-slate-600">Modified {modified}</span>
         )}
       </div>
     </div>
@@ -31,7 +31,7 @@ export const DBResultPreview: React.FC<DBResultPreview> = ({
 
 interface DBSearchPreviewProps {
   dbResult: DBQueryResult;
-  onSelect: (path: string) => void;
+  onSelect: (name: string, path: string) => void;
 }
 
 export const DBSearchPreview: React.FC<DBSearchPreviewProps> = ({
@@ -42,16 +42,16 @@ export const DBSearchPreview: React.FC<DBSearchPreviewProps> = ({
 
   return (
     <div
-      className="bg-gray-800 border border-gray-600 rounded shadow-md hover:shadow-lg transition-transform duration-300 cursor-pointer hover:scale-104 hover:bg-[#262f3b] mt-0 mb-4 p-2"
-      onClick={() => onSelect(entry.notepath)}
+      className="bg-slate-200 border border-slate-400 rounded transition-transform duration-300 cursor-pointer hover:scale-104 hover:bg-slate-300 p-2"
+      onClick={() => onSelect(getFileName(entry.notepath), entry.notepath)}
     >
-      <ReactMarkdown className="text-gray-200 break-words mt-0">
+      <ReactMarkdown className="text-slate-800 break-words mt-0">
         {entry.content}
       </ReactMarkdown>
-      <div className="text-xs text-gray-400 mt-0">
+      <div className="text-xs text-slate-600 mt-0">
         Similarity: {cosineDistanceToPercentage(entry._distance)}% |{" "}
         {modified && (
-          <span className="text-xs text-gray-400">Modified {modified}</span>
+          <span className="text-xs text-slate-600">Modified {modified}</span>
         )}
       </div>
     </div>

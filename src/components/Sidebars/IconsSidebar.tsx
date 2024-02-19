@@ -1,16 +1,12 @@
 import React, { useState } from "react";
 import SettingsModal from "../Settings/Settings";
-import { MdSettings } from "react-icons/md";
 import { SidebarAbleToShow } from "../FileEditorContainer";
-import { IoFolderOutline } from "react-icons/io5";
-import { FaSearch } from "react-icons/fa";
-import { FaRegPenToSquare } from "react-icons/fa6";
+import { FiSearch, FiFolder, FiEdit, FiFolderPlus, FiSettings } from "react-icons/fi";
 import NewNoteComponent from "../File/NewNote";
-import { HiFolderPlus } from "react-icons/hi2";
 import NewDirectoryComponent from "../File/NewDirectory";
 
 interface LeftSidebarProps {
-  onFileSelect: (path: string) => void;
+  onFileSelect: (name: string, path: string) => void;
   sidebarShowing: SidebarAbleToShow;
   makeSidebarShow: (show: SidebarAbleToShow) => void;
 }
@@ -25,49 +21,37 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
   const [isNewDirectoryModalOpen, setIsNewDirectoryModalOpen] = useState(false);
 
   return (
-    <div className="w-full h-full bg-gray-800 flex flex-col items-center justify-between">
+    <div className="h-full bg-slate-800 flex flex-col items-center justify-between p-1 gap-2">
       <div
-        className=" flex items-center justify-center w-full h-8 cursor-pointer"
-        onClick={() => makeSidebarShow("files")}
-      >
-        <div
-          className="rounded w-[80%] h-[80%] flex items-center justify-center hover:bg-slate-700"
-          style={{
-            backgroundColor: sidebarShowing === "files" ? "#334155" : "",
-          }}
-        >
-          <IoFolderOutline className="mx-auto text-gray-200 " size={22} />
-        </div>
-      </div>
-
-      <div
-        className="flex items-center justify-center w-full h-8  cursor-pointer"
+        className="flex items-center justify-center w-[2.5rem] h-10 cursor-pointer p-1 rounded flex items-center justify-center hover:bg-slate-500"
+        style={{
+          backgroundColor: sidebarShowing === "search" ? "#475569" : "",
+        }}
         onClick={() => makeSidebarShow("search")}
       >
-        <div
-          className="rounded w-[80%] h-[80%] flex items-center justify-center hover:bg-slate-700"
-          style={{
-            backgroundColor: sidebarShowing === "search" ? "#334155" : "",
-          }}
-        >
-          <FaSearch size={18} className=" text-gray-200" />
-        </div>
+        <FiSearch className="text-slate-100 text-xl" />
       </div>
       <div
-        className="bg-transparent border-none cursor-pointer flex items-center justify-center w-full h-8 "
+        className="flex items-center justify-center w-[2.5rem] h-10 cursor-pointer p-1 rounded flex items-center justify-center hover:bg-slate-500"
+        style={{
+          backgroundColor: sidebarShowing === "files" ? "#475569" : "",
+        }}
+        onClick={() => makeSidebarShow("files")}
+      >
+        <FiFolder className="text-slate-100 text-xl" />
+      </div>
+      <hr className="w-full" />
+      <div
+        className="flex items-center justify-center w-[2.5rem] h-10 cursor-pointer p-1 rounded flex items-center justify-center hover:bg-slate-500"
         onClick={() => setIsNewNoteModalOpen(true)}
       >
-        <div className="rounded w-[80%] h-[80%] flex items-center justify-center hover:bg-slate-700">
-          <FaRegPenToSquare className="text-gray-200" size={20} />
-        </div>
+        <FiEdit className="text-slate-100 text-xl" />
       </div>
       <div
-        className="bg-transparent border-none cursor-pointer flex items-center justify-center w-full h-8 mt-1"
+        className="flex items-center justify-center w-[2.5rem] h-10 cursor-pointer p-1 rounded flex items-center justify-center hover:bg-slate-500"
         onClick={() => setIsNewDirectoryModalOpen(true)}
       >
-        <div className="rounded w-[80%] h-[80%] flex items-center justify-center hover:bg-slate-700">
-          <HiFolderPlus className="text-gray-200" size={25} />
-        </div>
+        <FiFolderPlus className="text-slate-100 text-xl" />
       </div>
       <NewNoteComponent
         isOpen={isNewNoteModalOpen}
@@ -84,12 +68,12 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
         isOpen={isSettingsModalOpen}
         onClose={() => setIsSettingsModalOpen(false)}
       />
-      <button
-        className="bg-transparent border-none pb-2 cursor-pointer flex items-center justify-center w-full"
+      <div
+        className="flex items-center justify-center w-[2.5rem] h-10 cursor-pointer p-1 rounded flex items-center justify-center hover:bg-slate-500"
         onClick={() => setIsSettingsModalOpen(!isSettingsModalOpen)}
       >
-        <MdSettings className="h-6 w-6 text-gray-100" />
-      </button>
+        <FiSettings className="text-slate-100 text-xl" />
+      </div>
     </div>
   );
 };

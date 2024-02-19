@@ -5,7 +5,7 @@ import { DBQueryResult } from "electron/main/database/Schema";
 
 interface SidebarManagerProps {
   selectedFilePath: string | null;
-  onFileSelect: (path: string) => void;
+  onFileSelect: (name: string, path: string) => void;
   sidebarShowing: "files" | "search";
 }
 

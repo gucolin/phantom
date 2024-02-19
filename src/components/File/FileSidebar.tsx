@@ -1,14 +1,14 @@
 import { removeFileExtension } from "@/functions/strings";
 import { FileInfoNode, FileInfoTree } from "electron/main/Files/Types";
 import React, { useEffect, useState } from "react";
-import { FaChevronRight } from "react-icons/fa";
-import { FaChevronDown } from "react-icons/fa";
+import { FiChevronRight, FiChevronDown, FiFileText } from "react-icons/fi";
 import { FixedSizeList as List, ListChildComponentProps } from "react-window";
 import { isFileNodeDirectory, sortFilesAndDirectories } from "./fileOperations";
+import classNames from "classnames";
 
 interface FileListProps {
   selectedFile: string | null;
-  onFileSelect: (path: string) => void;
+  onFileSelect: (name: string, path: string) => void;
 }
 
 export const FileSidebar: React.FC<FileListProps> = ({
@@ -40,7 +40,7 @@ export const FileSidebar: React.FC<FileListProps> = ({
   }, []);
 
   return (
-    <div className="flex flex-col h-below-titlebar text-white overflow-y-auto overflow-x-hidden">
+    <div className="flex flex-col h-below-titlebar text-slate-950 bg-slate-100 overflow-y-auto overflow-x-hidden px-2">
       <FileExplorer
         files={files}
         selectedFile={selectedFile}
@@ -64,7 +64,7 @@ export const moveFile = async (sourcePath: string, destinationPath: string) => {
 interface FileExplorerProps {
   files: FileInfoTree;
   selectedFile: string | null;
-  onFileSelect: (path: string) => void;
+  onFileSelect: (name: string, path: string) => void;
   handleDragStart: (e: React.DragEvent, file: FileInfoNode) => void;
   directoryPath: string;
 }
@@ -156,7 +156,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
       itemCount={itemCount}
       itemSize={30}
       width={"100%"}
-      style={{ padding: 0, margin: 0 }}
+      style={{ padding: 0, margin: 0}}
     >
       {Row}
     </List>
@@ -166,7 +166,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
 interface FileInfoProps {
   file: FileInfoNode;
   selectedFile: string | null;
-  onFileSelect: (path: string) => void;
+  onFileSelect: (name: string, path: string) => void;
   handleDragStart: (e: React.DragEvent, file: FileInfoNode) => void;
   onDirectoryToggle: (path: string) => void;
   isExpanded?: boolean;
@@ -220,7 +220,7 @@ const FileItem: React.FC<FileInfoProps> = ({
       // setIsExpanded(!isExpanded);
       onDirectoryToggle(file.path);
     } else {
-      onFileSelect(file.path);
+      onFileSelect(file.name, file.path);
     }
   };
 
@@ -234,10 +234,6 @@ const FileItem: React.FC<FileInfoProps> = ({
     window.contextMenu.showFileItemContextMenu(file);
   };
 
-  const itemClasses = `flex items-center cursor-pointer px-2 py-1 border-b border-gray-200 hover:bg-slate-700 h-full mt-0 mb-0 ${
-    isSelected ? "bg-gray-700 text-white font-semibold" : "text-gray-200"
-  } ${isDragOver ? "bg-blue-500" : ""}`;
-
   return (
     <div
       draggable
@@ -248,14 +244,23 @@ const FileItem: React.FC<FileInfoProps> = ({
       onDrop={handleDrop}
       onDragLeave={handleDragLeave}
     >
-      <div onClick={toggle} className={itemClasses}>
+      <div onClick={toggle} className={classNames("flex items-center cursor-pointer px-2 py-1 hover:bg-slate-400 h-full mt-0 mb-0 rounded", {
+        "bg-slate-300 text-slate-950 font-semibold": isSelected,
+        "text-slate-800": !isSelected,
+        "bg-blue-500": isDragOver,
+      })}>
         {isDirectory && (
-          <span className={`mr-2 mt-1 text-[13px] `}>
-            {isExpanded ? <FaChevronDown /> : <FaChevronRight />}
+          <span className={`mr-1 text-[0.875rem] `}>
+            {isExpanded ? <FiChevronDown /> : <FiChevronRight />}
+          </span>
+        )}
+        {!isDirectory && (
+          <span className={`mr-2 text-[0.875rem] `}>
+            <FiFileText />
           </span>
         )}
         <span
-          className={`text-[13px] flex-1 truncate mt-0 ${
+          className={`text-[0.875rem] flex-1 truncate mt-0 ${
             isDirectory ? "font-semibold" : ""
           }`}
         >

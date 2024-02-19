@@ -38,17 +38,18 @@ button {
 
 .milkdown .editor {
   @apply min-h-below-titlebar-min; 
-  background-color:#242c37;
-  color: white;
-  font-size: 17px;
+  background-color:rgb(248 250 252);
+  font-size: 1rem;
   overflow: auto;
-  padding: 2px;
-  padding-left: 5px;
+  padding: 0.5rem 1.25rem !important;
 }
 .milkdown .editor:focus {
   outline: none;
 }
 
+.milkdown .editor .link, .milkdown .editor a {
+  color: rgb(56 189 248) !important;
+}
 
 .milkdown .editor .paragraph {
   margin: 1rem 0;

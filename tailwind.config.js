@@ -9,16 +9,16 @@ export default {
         'sans': ['"Nunito Sans"', ...defaultTheme.fontFamily.sans],
       },
       height: {
-        titlebar: "30px",
-        "below-titlebar": "calc(100vh - 30px)",
+        titlebar: "2rem",
+        "below-titlebar": "calc(100vh - 2rem)",
       },
       minHeight: {
-        "below-titlebar-min": "calc(100vh - 30px)",
+        "below-titlebar-min": "calc(100vh - 2rem)",
       },
     },
   },
   corePlugins: {
-    preflight: false,
+    preflight: true,
   },
   plugins: [],
 };

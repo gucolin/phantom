@@ -67,7 +67,7 @@ const EmbeddingModelManager: React.FC<EmbeddingModelManagerProps> = ({
   };
 
   return (
-    <div className="w-full bg-gray-800 rounded">
+    <div className="w-full bg-slate-200 rounded">
       {children}
       <CustomSelect
         options={modelRepos}

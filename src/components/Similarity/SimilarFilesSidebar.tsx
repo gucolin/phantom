@@ -5,7 +5,7 @@ import { PiGraph } from "react-icons/pi";
 
 interface SimilarEntriesComponentProps {
   filePath: string;
-  onFileSelect: (path: string) => void;
+  onFileSelect: (name: string, path: string) => void;
 }
 
 const SimilarEntriesComponent: React.FC<SimilarEntriesComponentProps> = ({
@@ -72,12 +72,12 @@ const SimilarEntriesComponent: React.FC<SimilarEntriesComponentProps> = ({
   }, [filePath]);
 
   return (
-    <div className="h-full overflow-y-auto overflow-x-hidden mt-0 border-l-[0.1px] border-t-0 border-b-0 border-r-0 border-gray-600 border-solid">
+    <div className="h-full overflow-y-auto overflow-x-hidden mt-0 border-l-[0.1px] border-t-0 border-b-0 border-r-0 border-slate-400 border-solid">
       {similarEntries.length > 0 && (
-        <div className="flex items-center justify-center bg-gray-800 mt-0 mb-0 p-0">
-          <PiGraph className="text-white mt-1" />
+        <div className="flex items-center justify-center bg-slate-300 p-2">
+          <PiGraph className="text-slate-950 mr-1" />
 
-          <p className="text-gray-200 text-sm pl-1 mb-0  mt-1 pt-0 pb-0">
+          <p className="text-slate-800 text-sm pl-1 mb-0 pt-0 pb-0">
             Related Notes
           </p>
         </div>
@@ -94,7 +94,7 @@ const SimilarEntriesComponent: React.FC<SimilarEntriesComponentProps> = ({
       {similarEntries.length === 0 && (
         <div className="flex flex-col items-center justify-center h-full w-full">
           <p
-            className="flex justify-center items-center text-gray-500 text-lg mx-auto text-center"
+            className="flex justify-center items-center text-slate-500 text-lg mx-auto text-center"
             style={{ width: "fit-content" }}
           >
             Related notes will appear here...

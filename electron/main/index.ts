@@ -66,7 +66,7 @@ const fileWatcher: FSWatcher | null = null;
 
 async function createWindow() {
   win = new BrowserWindow({
-    title: "Main window",
+    title: "phantom",
     webPreferences: {
       preload,
     },
@@ -77,7 +77,7 @@ async function createWindow() {
       symbolColor: "#74b1be",
       height: 30,
     },
-    width: 1200,
+    width: 1400,
     height: 800,
   });
 

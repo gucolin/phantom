@@ -50,6 +50,7 @@
     "@xenova/transformers": "^2.8.0",
     "apache-arrow": "^14.0.2",
     "chokidar": "^3.5.3",
+    "classnames": "^2.5.1",
     "cm6-theme-basic-dark": "^0.2.0",
     "date-fns": "^3.3.1",
     "electron-store": "^8.1.0",

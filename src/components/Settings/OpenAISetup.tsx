@@ -35,19 +35,19 @@ const OpenAISetupModal: React.FC<OpenAISetupModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={handleSave}>
       <div className="w-[300px] ml-3 mr-2 mb-2">
-        <h3 className="font-semibold mb-0 text-white">OpenAI Setup</h3>
-        <p className="text-gray-100 mb-2 mt-2 text-sm">
+        <h3 className="font-semibold mb-0 text-slate-950">OpenAI Setup</h3>
+        <p className="text-slate-900 mb-2 mt-2 text-sm">
           Enter your OpenAI API key below:
         </p>
         <input
           type="text"
-          className="block w-full px-3 py-2 border border-gray-300 box-border rounded-md focus:outline-none focus:shadow-outline-blue focus:border-blue-300 transition duration-150 ease-in-out"
+          className="block w-full px-3 py-2 border border-slate-300 box-border rounded-md focus:outline-none focus:shadow-outline-blue focus:border-blue-300 transition duration-150 ease-in-out"
           value={openAIKey}
           onChange={(e) => setOpenAIKey(e.target.value)}
           onKeyDown={handleKeyPress}
           placeholder="OpenAI API Key"
         />
-        <p className="mt-2 text-gray-100 text-xs">
+        <p className="mt-2 text-slate-900 text-xs">
           <i>
             You&apos;ll then be able to choose an OpenAI model in the model
             dropdown...
@@ -55,7 +55,7 @@ const OpenAISetupModal: React.FC<OpenAISetupModalProps> = ({
         </p>
 
         <Button
-          className="bg-slate-700 border-none h-8 hover:bg-slate-900 cursor-pointer text-center pt-0 pb-0 pr-2 pl-2 mt-1 w-[80px]"
+          className="bg-slate-300 border-none h-8 hover:bg-slate-100 cursor-pointer text-center pt-0 pb-0 pr-2 pl-2 mt-1 w-[80px]"
           onClick={handleSave}
           placeholder=""
         >

@@ -58,20 +58,20 @@ const LocalModelModal: React.FC<LocalModelModalProps> = ({
   return (
     <Modal isOpen={isOpen} onClose={saveModelConfigToElectronStore}>
       <div className="w-[400px] ml-2 mr-2 mb-2 pl-3">
-        <h2 className="text-white  font-semibold mb-0">New Local Model</h2>
-        <p className="text-white text-sm mb-2 mt-1">
+        <h2 className="text-slate-950  font-semibold mb-0">New Local Model</h2>
+        <p className="text-slate-950 text-sm mb-2 mt-1">
           To use a local model you need to download a GGUF model file and attach
           it here:
         </p>
 
         <Button
-          className="bg-slate-700 border-none h-8 hover:bg-slate-900 cursor-pointer w-[180px] text-center pt-0 pb-0 pr-2 pl-2 mt-1"
+          className="bg-slate-300 border-none h-8 hover:bg-slate-100 cursor-pointer w-[180px] text-center pt-0 pb-0 pr-2 pl-2 mt-1"
           onClick={handleModelFileSelection}
           placeholder=""
         >
           Select Model .GGUF File
         </Button>
-        <p className="text-white text-xs mb-2 mt-2 italic">
+        <p className="text-slate-950 text-xs mb-2 mt-2 italic">
           {" "}
           You can download the most popular models from{" "}
           <ExternalLink
@@ -81,11 +81,11 @@ const LocalModelModal: React.FC<LocalModelModalProps> = ({
           .
         </p>
         {newModelPath && (
-          <p className="mt-2 text-xs text-gray-100">
+          <p className="mt-2 text-xs text-slate-900">
             Selected: <strong>{newModelPath}</strong>
           </p>
         )}
-        <h3 className="text-gray-100 mb-2 mt-6">Context Length</h3>
+        <h3 className="text-slate-900 mb-2 mt-6">Context Length</h3>
         <CustomSelect
           options={contextLengthOptions}
           value={selectedContextLength}
@@ -93,7 +93,7 @@ const LocalModelModal: React.FC<LocalModelModalProps> = ({
             setSelectedContextLength(newValue);
           }}
         />
-        <p className="text-gray-100 text-xs mb-2 mt-2">
+        <p className="text-slate-900 text-xs mb-2 mt-2">
           <i>
             If you experience a crash, try lowering the context length. If you
             get a context length error, increase it. 2048 is recommended for all
@@ -102,7 +102,7 @@ const LocalModelModal: React.FC<LocalModelModalProps> = ({
         </p>
 
         <Button
-          className="bg-slate-700 border-none h-8 hover:bg-slate-900 cursor-pointer w-[80px] text-center pt-0 pb-0 pr-2 pl-2 mt-3"
+          className="bg-slate-300 border-none h-8 hover:bg-slate-100 cursor-pointer w-[80px] text-center pt-0 pb-0 pr-2 pl-2 mt-3"
           onClick={saveModelConfigToElectronStore}
           placeholder=""
         >

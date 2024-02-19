@@ -31,30 +31,30 @@ const InitialSetupSinglePage: React.FC<OldInitialSettingsProps> = ({
     >
       <div className="w-full mr-4 ml-2">
         <div className="ml-2 mt-0 h-full  ">
-          <h2 className="text-2xl font-semibold mb-0 text-white">
+          <h2 className="text-2xl font-semibold mb-0 text-slate-950">
             Welcome to the Reor Project.
           </h2>
-          <p className="mt-2 text-gray-100 ">
+          <p className="mt-2 text-slate-900 ">
             Reor is a self-organising note-taking app. Each note will be saved
             as a markdown file to a &quot;vault&quot; directory on your machine.
           </p>
-          <p className="mt-2 text-gray-100">
+          <p className="mt-2 text-slate-900">
             Choose your vault directory here:
           </p>
           <DirectorySelector setErrorMsg={setErrorMsg} />
-          <p className="mt-2 text-xs text-gray-100 ">
+          <p className="mt-2 text-xs text-slate-900 ">
             Your vault directory doesn&apos;t need to be empty. Only markdown
             files will be indexed.
           </p>
 
           <div className="mt-8">
             <EmbeddingModelManager>
-              <h3 className="font-semibold mb-2 text-white">Embedding Model</h3>
+              <h3 className="font-semibold mb-2 text-slate-950">Embedding Model</h3>
             </EmbeddingModelManager>
           </div>
           <LLMSettings isInitialSetup={true} />
           <Button
-            className="bg-slate-700 mt-4 mb-3  border-none h-10 hover:bg-slate-900 cursor-pointer w-[80px] text-center pt-0 pb-0 pr-2 pl-2"
+            className="bg-slate-300 mt-4 mb-3  border-none h-10 hover:bg-slate-100 cursor-pointer w-[80px] text-center pt-0 pb-0 pr-2 pl-2"
             onClick={handleNext}
             placeholder=""
           >

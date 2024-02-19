@@ -5,6 +5,7 @@ import { errorToString } from "@/functions/error";
 import Textarea from "@mui/joy/Textarea";
 import CircularProgress from "@mui/material/CircularProgress";
 import ReactMarkdown from "react-markdown";
+import { FiSend } from "react-icons/fi";
 
 const ChatWithLLM: React.FC = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -161,16 +162,16 @@ const ChatWithLLM: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col w-full h-full mx-auto border shadow-lg overflow-hidden bg-gray-700">
+    <div className="flex flex-col w-full h-full mx-auto border overflow-hidden bg-slate-100">
       <div className="flex-1 overflow-auto p-4 pt-0 bg-transparent">
         {messages.length === 0 && !currentBotMessage && (
           <div>
             {defaultModel ? (
-              <p className="text-center text-gray-500">
+              <p className="text-center text-slate-500">
                 Using default model: {defaultModel}
               </p>
             ) : (
-              <p className="text-center text-gray-500">
+              <p className="text-center text-slate-500">
                 No default model selected
               </p>
             )}
@@ -204,19 +205,19 @@ const ChatWithLLM: React.FC = () => {
           )}
         </div>
       </div>
-      <div className="p-4 bg-gray-500">
+      <div className="p-4 bg-slate-100">
         <div className="flex space-x-2 h-full">
           <Textarea
             onKeyDown={handleKeyDown}
             onChange={handleInputChange}
             value={userInput}
-            className="w-full  bg-gray-300"
+            className="w-full bg-slate-300"
             name="Outlined"
             placeholder="Ask your knowledge..."
             variant="outlined"
             style={{
-              backgroundColor: "rgb(55 65 81 / var(--tw-bg-opacity))",
-              color: "rgb(209 213 219)",
+              backgroundColor: "rgb(241 245 249 / var(--tw-bg-opacity))",
+              color: "rgb(17 24 39)",
             }}
           />
           <div className="flex justify-center items-center h-full ">
@@ -224,16 +225,16 @@ const ChatWithLLM: React.FC = () => {
               <CircularProgress
                 size={32}
                 thickness={20}
-                style={{ color: "rgb(209 213 219 / var(--tw-bg-opacity))" }}
+                style={{ color: "rgb(17 24 39) / var(--tw-bg-opacity))" }}
                 className="h-full w-full m-x-auto color-gray-500 "
               />
             ) : (
               <Button
-                className="bg-slate-700 w-[70px] border-none h-full hover:bg-slate-900 cursor-pointer text-center pt-0 pb-0 pr-2 pl-2"
+                className="bg-slate-300 w-[4rem] border-none h-full hover:bg-slate-100 cursor-pointer flex justify-center items-center py-0 px-2 text-lg"
                 onClick={handleSubmitNewMessage}
                 placeholder=""
               >
-                Ask
+                <FiSend />
               </Button>
             )}
           </div>

@@ -7,12 +7,15 @@ import MilkdownEditor from "./File/MilkdownEditor";
 import ResizableComponent from "./Generic/ResizableComponent";
 import SidebarManager from "./Sidebars/MainSidebar";
 import { toast } from "react-toastify";
+import { removeFileExtension } from "@/functions/strings";
+import { FiFileText } from "react-icons/fi";
 
 interface FileEditorContainerProps {}
 export type SidebarAbleToShow = "files" | "search";
 
 const FileEditorContainer: React.FC<FileEditorContainerProps> = () => {
   const [editorContent, setEditorContent] = useState<string>("");
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
   const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null);
   const lastSavedContentRef = useRef<string>("");
   const [showChatbot, setShowChatbot] = useState<boolean>(true);
@@ -20,7 +23,7 @@ const FileEditorContainer: React.FC<FileEditorContainerProps> = () => {
   const [sidebarShowing, setSidebarShowing] =
     useState<SidebarAbleToShow>("files");
 
-  const onFileSelect = async (path: string) => {
+  const onFileSelect = async (name: string, path: string) => {
     if (selectedFilePath && editorContent !== lastSavedContentRef.current) {
       try {
         await window.files.writeFile(selectedFilePath, editorContent); // save the current content.
@@ -31,6 +34,7 @@ const FileEditorContainer: React.FC<FileEditorContainerProps> = () => {
         return;
       }
     }
+    setSelectedFileName(name);
     setSelectedFilePath(path);
   };
   const toggleChatbot = () => {
@@ -51,16 +55,14 @@ const FileEditorContainer: React.FC<FileEditorContainerProps> = () => {
       />
 
       <div className="flex h-below-titlebar">
-        <div className="w-[40px] border-l-0 border-b-0 border-t-0 border-r-[0.001px] border-gray-600 border-solid">
-          <LeftSidebar
-            onFileSelect={onFileSelect}
-            sidebarShowing={sidebarShowing}
-            makeSidebarShow={setSidebarShowing}
-          />
-        </div>
+        <LeftSidebar
+          onFileSelect={onFileSelect}
+          sidebarShowing={sidebarShowing}
+          makeSidebarShow={setSidebarShowing}
+        />
 
-        <ResizableComponent resizeSide="right">
-          <div className="h-full border-l-0 border-b-0 border-t-0 border-r-[0.001px] border-gray-600 border-solid w-full">
+        <ResizableComponent resizeSide="right" initialWidth={400}>
+          <div className="h-full border-l-0 border-b-0 border-t-0 border-r-[0.001px] border-slate-400 border-solid w-full">
             <SidebarManager
               selectedFilePath={selectedFilePath}
               onFileSelect={onFileSelect}
@@ -73,6 +75,13 @@ const FileEditorContainer: React.FC<FileEditorContainerProps> = () => {
           <div className="w-full h-full flex overflow-x-hidden">
             <div className="w-full flex h-full">
               <div className="h-full w-full">
+                <div className="flex items-center justify-start bg-slate-300 p-2">
+                  <FiFileText className="text-slate-950 mr-1" />
+
+                  <h2 className="text-slate-800 text-sm pl-1 mb-0 pt-0 pb-0 font-semibold">
+                    {removeFileExtension(selectedFileName ?? '')}
+                  </h2>
+                </div>
                 <MilkdownEditor
                   filePath={selectedFilePath}
                   setContentInParent={setEditorContent}

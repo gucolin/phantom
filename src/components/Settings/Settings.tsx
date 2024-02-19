@@ -31,33 +31,33 @@ const SettingsModal: React.FC<ModalProps> = ({
         handleSave();
       }}
     >
-      <div className=" mt-0  flex w-[600px] ">
-        <div className="flex flex-col ml-2 pr-1 w-[100px]  bg-gray-800 text-white border-r-[0.1px] border-gray-700 border-solid border-b-0 border-t-0 border-l-0">
+      <div className="flex w-[40rem] h-[25rem]">
+        <div className="flex flex-col ml-2 pr-1 w-[8rem]  bg-slate-200 text-slate-950 border-r-[0.1px] border-slate-300 border-solid border-b-0 border-t-0 border-l-0 gap-1">
           <div
-            className={`flex items-center mt-2 rounded cursor-pointer p-2 border-b border-gray-200 hover:bg-gray-600 text-sm ${
+            className={`flex items-center mt-2 rounded cursor-pointer p-2 border-b border-slate-200 hover:bg-slate-400 text-sm ${
               activeTab === "llmSettings"
-                ? "bg-gray-700 text-white font-semibold"
-                : "text-gray-200"
+                ? "bg-slate-300 text-slate-950 font-semibold"
+                : "text-slate-800"
             }`}
             onClick={() => setActiveTab("llmSettings")}
           >
             LLM
           </div>
           <div
-            className={`flex items-center rounded cursor-pointer p-2 border-b border-gray-200 hover:bg-gray-600 text-sm ${
+            className={`flex items-center rounded cursor-pointer p-2 hover:bg-slate-400 text-sm ${
               activeTab === "embeddingModel"
-                ? "bg-gray-700 text-white font-semibold"
-                : "text-gray-200"
+                ? "bg-slate-300 text-slate-950 font-semibold"
+                : "text-slate-800"
             }`}
             onClick={() => setActiveTab("embeddingModel")}
           >
             Embedding Model
           </div>
           <div
-            className={`flex items-center rounded cursor-pointer p-2 border-b border-gray-200 hover:bg-gray-600 text-sm ${
+            className={`flex items-center rounded cursor-pointer p-2 hover:bg-slate-400 text-sm ${
               activeTab === "RAG"
-                ? "bg-gray-700 text-white font-semibold"
-                : "text-gray-200"
+                ? "bg-slate-300 text-slate-950 font-semibold"
+                : "text-slate-800"
             }`}
             onClick={() => setActiveTab("RAG")}
           >
@@ -65,7 +65,7 @@ const SettingsModal: React.FC<ModalProps> = ({
           </div>
         </div>
 
-        <div className="flex-1 ml-2">
+        <div className="flex-1 px-2 py-4">
           {activeTab === "llmSettings" && (
             <div className="mt-2 w-full">
               <LLMSettings />
@@ -76,7 +76,7 @@ const SettingsModal: React.FC<ModalProps> = ({
               <EmbeddingModelManager
                 handleUserHasChangedModel={setWillNeedToReIndex}
                 childrenBelowDropdown={
-                  <p className=" text-gray-100 text-xs">
+                  <p className=" text-slate-900 text-xs">
                     <i>
                       If you notice some lag in the editor it is likely because
                       you chose too large of a model...
@@ -84,12 +84,12 @@ const SettingsModal: React.FC<ModalProps> = ({
                   </p>
                 }
               >
-                <h2 className="text-2xl font-semibold mb-0 text-white">
+                <h2 className="text-2xl font-semibold mb-4 text-slate-950">
                   Embedding Model
                 </h2>{" "}
-                <p className="mt-5 text-gray-100">
+                <h4 className="text-slate-900 mb-1">
                   If you change this, your files will be re-indexed:
-                </p>
+                </h4>
               </EmbeddingModelManager>
             </div>
           )}
@@ -97,10 +97,10 @@ const SettingsModal: React.FC<ModalProps> = ({
           {activeTab === "RAG" && (
             <div className="w-full">
               <RagSettings>
-                <h2 className="text-2xl font-semibold mb-0 text-white">RAG</h2>{" "}
-                <p className="mt-2 text-sm text-gray-100 mb-1">
+                <h2 className="text-2xl font-semibold mb-0 text-slate-950 mb-4">RAG</h2>{" "}
+                <h4 className="text-slate-900 mb-1">
                   Number of notes to feed to the LLM during Q&A:
-                </p>
+                </h4>
               </RagSettings>
             </div>
           )}

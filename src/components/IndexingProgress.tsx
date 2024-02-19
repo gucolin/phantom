@@ -35,12 +35,12 @@ const IndexingProgress: React.FC<IndexingProgressProps> = ({
       hideCloseButton={true}
     >
       <div className="w-[500px] h-[100px] ml-3 mb-3 mt-2">
-        <h6 className="mt-2 mb-2 text-2xl font-semibold text-white">
+        <h6 className="mt-2 mb-2 text-2xl font-semibold text-slate-950">
           {indexingProgress === 0
             ? "Initializing vector database..."
             : "Indexing files..."}
         </h6>
-        <div className="w-full h-4 bg-gray-800 rounded-full overflow-hidden mb-2 border-2 border-gray-400">
+        <div className="w-full h-4 bg-slate-200 rounded-full overflow-hidden mb-2 border-2 border-slate-400">
           <div
             className="bg-blue-400 h-full transition-all duration-300 ease-out"
             style={{ width: `${indexingProgress * 100}%` }}
@@ -56,7 +56,7 @@ const IndexingProgress: React.FC<IndexingProgressProps> = ({
             />
           )}
 
-          <span className="text-sm text-white font-semibold">
+          <span className="text-sm text-slate-950 font-semibold">
             {indexingProgress > 0 && (
               <>{Math.round(indexingProgress * 100)}% -</>
             )}{" "}
