@@ -72,7 +72,7 @@ const EmbeddingModelSettings: React.FC<EmbeddingModelManagerProps> = ({
       <h2 className="text-2xl font-semibold mb-0 text-slate-950">
         Embedding Model
       </h2>{" "}
-      <p className="mt-5 text-gray-100">
+      <p className="mt-5 text-slate-900">
         If you change this, your files will be re-indexed:
       </p>{" "}
       {Object.keys(embeddingModels).length > 0 && (
@@ -84,7 +84,7 @@ const EmbeddingModelSettings: React.FC<EmbeddingModelManagerProps> = ({
           onChange={handleChangeOnModelSelect}
         />
       )}
-      <p className=" text-gray-100 text-xs">
+      <p className="text-slate-900 text-xs my-2">
         <i>
           If you notice some lag in the editor it is likely because you chose
           too large of a model...
@@ -92,14 +92,14 @@ const EmbeddingModelSettings: React.FC<EmbeddingModelManagerProps> = ({
       </p>{" "}
       <div className="flex">
         <Button
-          className="bg-slate-700  border-none h-8 hover:bg-slate-900 cursor-pointer w-full text-center pt-0 pb-0 pr-2 pl-2 mt-2 mb-3 mr-4"
+          className="bg-slate-300  border-none h-8 hover:bg-slate-100 cursor-pointer w-full text-center pt-0 pb-0 pr-2 pl-2 mt-2 mb-3 mr-4"
           onClick={() => setIsNewLocalEmbeddingModelModalOpen(true)}
           placeholder={""}
         >
           Attach Local Model
         </Button>
         <Button
-          className="bg-slate-700  border-none h-8 hover:bg-slate-900 cursor-pointer w-full text-center pt-0 pb-0 pr-2 pl-2 mt-2 mb-3 mr-4"
+          className="bg-slate-300  border-none h-8 hover:bg-slate-100 cursor-pointer w-full text-center pt-0 pb-0 pr-2 pl-2 mt-2 mb-3 mr-4"
           onClick={() => setIsContextLengthModalOpen(true)}
           placeholder={""}
         >

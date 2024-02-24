@@ -74,7 +74,7 @@ const FileEditorContainer: React.FC<FileEditorContainerProps> = () => {
         {selectedFilePath && (
           <div className="w-full h-full flex overflow-x-hidden">
             <div className="w-full flex h-full">
-              <div className="h-full w-full">
+              <div className="flex flex-col h-full w-full">
                 <div className="flex items-center justify-start bg-slate-300 p-2">
                   <FiFileText className="text-slate-950 mr-1" />
 

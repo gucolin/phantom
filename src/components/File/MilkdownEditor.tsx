@@ -88,7 +88,7 @@ const MilkdownEditor: React.FC<MarkdownEditorProps> = ({
   }, [filePath]);
 
   return (
-    <div className="h-full overflow-auto">
+    <div className="grow overflow-auto">
       <ReactEditor editor={editor} />
     </div>
   );

@@ -84,7 +84,7 @@ const SimilarEntriesComponent: React.FC<SimilarEntriesComponentProps> = ({
   }, [filePath]);
 
   return (
-    <div className="h-full overflow-y-auto overflow-x-hidden mt-0 border-l-[0.1px] border-t-0 border-b-0 border-r-0 border-slate-400 border-solid">
+    <div className="flex flex-col h-full w-full  mt-0 border-l-[0.1px] border-t-0 border-b-0 border-r-0 border-slate-400 border-solid">
       {similarEntries.length > 0 && (
         <div className="flex items-center justify-center bg-slate-300 p-2">
           <PiGraph className="text-slate-950 mr-1" />
@@ -94,25 +94,25 @@ const SimilarEntriesComponent: React.FC<SimilarEntriesComponentProps> = ({
           </p>
         </div>
       )}
-      {similarEntries.map((dbResult, index) => (
-        <div className="pb-2 pr-2 pl-2 pt-1" key={index}>
-          <DBResultPreview
-            key={index}
-            dbResult={dbResult}
-            onSelect={onFileSelect}
-          />
-        </div>
-      ))}
-      {similarEntries.length === 0 && (
-        <div className="flex flex-col items-center justify-center h-full w-full">
+      <div className="flex-col grow overflow-y-auto overflow-x-hidden">
+        {similarEntries.map((dbResult, index) => (
+          <div className="m-2" key={index}>
+            <DBResultPreview
+              key={index}
+              dbResult={dbResult}
+              onSelect={onFileSelect}
+            />
+          </div>
+        ))}
+        {similarEntries.length === 0 && (
           <p
             className="flex justify-center items-center text-slate-500 text-lg mx-auto text-center"
             style={{ width: "fit-content" }}
           >
             Related notes will appear here...
           </p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
