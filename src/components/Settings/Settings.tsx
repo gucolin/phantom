@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import Modal from "../Generic/Modal";
 import LLMSettings from "./LLMSettings";
-import EmbeddingModelManager from "./EmbeddingSettings";
+import EmbeddingModelSettings from "./EmbeddingSettings";
 import RagSettings from "./RagSettings";
+
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,6 +18,7 @@ const SettingsModal: React.FC<ModalProps> = ({
 
   const handleSave = () => {
     if (willNeedToReIndex) {
+      console.log("reindexing files");
       window.database.indexFilesInDirectory();
     }
     onCloseFromParent();
@@ -53,6 +55,7 @@ const SettingsModal: React.FC<ModalProps> = ({
           >
             Embedding Model
           </div>
+
           <div
             className={`flex items-center rounded cursor-pointer p-2 hover:bg-slate-400 text-sm ${
               activeTab === "RAG"
@@ -73,24 +76,9 @@ const SettingsModal: React.FC<ModalProps> = ({
           )}
           {activeTab === "embeddingModel" && (
             <div className="w-full">
-              <EmbeddingModelManager
-                handleUserHasChangedModel={setWillNeedToReIndex}
-                childrenBelowDropdown={
-                  <p className=" text-slate-900 text-xs">
-                    <i>
-                      If you notice some lag in the editor it is likely because
-                      you chose too large of a model...
-                    </i>
-                  </p>
-                }
-              >
-                <h2 className="text-2xl font-semibold mb-4 text-slate-950">
-                  Embedding Model
-                </h2>{" "}
-                <h4 className="text-slate-900 mb-1">
-                  If you change this, your files will be re-indexed:
-                </h4>
-              </EmbeddingModelManager>
+              <EmbeddingModelSettings
+                handleUserHasChangedModel={() => setWillNeedToReIndex(true)}
+              />
             </div>
           )}
 

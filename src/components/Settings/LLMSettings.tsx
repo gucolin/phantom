@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { AIModelConfig } from "electron/main/Store/storeConfig";
+import { LLMModelConfig } from "electron/main/Store/storeConfig";
 import CustomSelect from "../Generic/Select";
 import { Button } from "@material-tailwind/react";
-import LocalModelModal from "./NewLocalModel";
-import OpenAISetupModal from "./OpenAISetup";
-import ContextLengthModal from "./ContextLengthSettings";
-import RemoteLLMSetupModal from "./RemoteLLMSetup";
+import LocalModelModal from "./ExtraModals/NewLocalModel";
+import OpenAISetupModal from "./ExtraModals/OpenAISetup";
+import ContextLengthModal from "./ExtraModals/ContextLengthSettings";
+import RemoteLLMSetupModal from "./ExtraModals/RemoteLLMSetup";
 
 interface LLMSettingsProps {
   userHasCompleted?: (completed: boolean) => void;
@@ -19,7 +19,7 @@ const LLMSettings: React.FC<LLMSettingsProps> = ({
   isInitialSetup,
 }) => {
   const [modelConfigs, setModelConfigs] = useState<
-    Record<string, AIModelConfig>
+    Record<string, LLMModelConfig>
   >({});
   const [isNewLocalModelModalOpen, setIsNewLocalModelModalOpen] =
     useState<boolean>(false);
@@ -38,9 +38,9 @@ const LLMSettings: React.FC<LLMSettingsProps> = ({
 
   const fetchModelConfigs = async () => {
     try {
-      const configs = await window.electronStore.getAIModelConfigs();
+      const configs = await window.electronStore.getLLMConfigs();
       setModelConfigs(configs);
-      const defaultModelName = await window.electronStore.getDefaultAIModel();
+      const defaultModelName = await window.electronStore.getDefaultLLM();
       setDefaultModel(defaultModelName);
     } catch (error) {
       console.error("Failed to fetch model configurations:", error);
@@ -77,7 +77,7 @@ const LLMSettings: React.FC<LLMSettingsProps> = ({
 
   const handleDefaultModelChange = (selectedModel: string) => {
     setDefaultModel(selectedModel);
-    window.electronStore.setDefaultAIModel(selectedModel);
+    window.electronStore.setDefaultLLM(selectedModel);
   };
 
   const modelOptions = Object.keys(modelConfigs).map((key) => ({

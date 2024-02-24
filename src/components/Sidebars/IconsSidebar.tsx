@@ -4,6 +4,8 @@ import { SidebarAbleToShow } from "../FileEditorContainer";
 import { FiSearch, FiFolder, FiEdit, FiFolderPlus, FiSettings } from "react-icons/fi";
 import NewNoteComponent from "../File/NewNote";
 import NewDirectoryComponent from "../File/NewDirectory";
+import { GrNewWindow } from "react-icons/gr";
+import { LuFolderPlus } from "react-icons/lu";
 
 interface LeftSidebarProps {
   onFileSelect: (name: string, path: string) => void;
