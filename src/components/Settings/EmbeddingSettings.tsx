@@ -69,7 +69,7 @@ const EmbeddingModelSettings: React.FC<EmbeddingModelManagerProps> = ({
 
   return (
     <div className="w-full bg-slate-200 rounded">
-      <h2 className="text-2xl font-semibold mb-0 text-white">
+      <h2 className="text-2xl font-semibold mb-0 text-slate-950">
         Embedding Model
       </h2>{" "}
       <p className="mt-5 text-gray-100">

@@ -42,10 +42,10 @@ const NewRemoteEmbeddingModelModal: React.FC<
   return (
     <Modal isOpen={isOpen} onClose={saveModelConfigToElectronStore}>
       <div className="w-[400px] ml-2 mr-2 mb-2 pl-3">
-        <h2 className="text-white  font-semibold mb-0">
+        <h2 className="text-slate-950  font-semibold mb-0">
           New Remote Embedding Model
         </h2>
-        <p className="text-white text-sm mb-2 mt-2">
+        <p className="text-slate-950 text-sm mb-2 mt-2">
           Provide the repo name from Hugging Face like
           &quot;Xenova/roberta-base-squad2&quot;.
         </p>
@@ -58,7 +58,7 @@ const NewRemoteEmbeddingModelModal: React.FC<
           onKeyDown={handleKeyPress}
           placeholder="Embedding Model Repo"
         />
-        <p className="text-white text-xs mb-2 mt-2 italic">
+        <p className="text-slate-950 text-xs mb-2 mt-2 italic">
           <ExternalLink
             url="https://huggingface.co/models?pipeline_tag=feature-extraction&sort=downloads&search=xenova"
             label="This page on Hugging Face"

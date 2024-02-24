@@ -84,7 +84,7 @@ const InitialEmbeddingModelSettings: React.FC<
 
   return (
     <div className="w-full bg-gray-800 rounded">
-      <h3 className="font-semibold mb-2 text-white">Embedding Model</h3>{" "}
+      <h3 className="font-semibold mb-2 text-slate-950">Embedding Model</h3>{" "}
       {/* <CustomSelect
         options={modelRepos}
         value={selectedModel}

@@ -65,10 +65,10 @@ const NewEmbeddingModelModalBothTypes: React.FC<
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <div className="w-[400px] ml-2 mr-2 mb-2 pl-3">
-        <h2 className="text-white  font-semibold mb-0">
+        <h2 className="text-slate-950  font-semibold mb-0">
           Attach a custom embedding model
         </h2>
-        <p className="text-white text-sm mb-2 mt-2">
+        <p className="text-slate-950 text-sm mb-2 mt-2">
           You can either attach a local embedding model or provide a Hugging
           Face repo name to be downloaded:
         </p>
@@ -90,7 +90,7 @@ const NewEmbeddingModelModalBothTypes: React.FC<
             Download by Repo name
           </Button>
         </div>
-        <p className="text-white text-xs mb-2 mt-2 italic">
+        <p className="text-slate-950 text-xs mb-2 mt-2 italic">
           <ExternalLink
             url="https://huggingface.co/models?pipeline_tag=feature-extraction&sort=downloads&search=xenova"
             label="This page on Hugging Face"
@@ -111,7 +111,7 @@ const NewEmbeddingModelModalBothTypes: React.FC<
           }}
         >
           <div className="w-[300px] ml-2 mr-2 mb-2 pl-3 pt-1">
-            <h3 className="font-semibold mb-3 text-white">
+            <h3 className="font-semibold mb-3 text-slate-950">
               Download by Repo name
             </h3>
             {/* <p className="text-gray-100 mb-3 mt-2 text-sm">
