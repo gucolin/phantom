@@ -1,21 +1,35 @@
-interface BaseAIModelConfig {
+interface BaseLLMConfig {
   contextLength: number;
   errorMsg?: string;
   engine: "openai" | "llamacpp";
 }
 
-export interface OpenAIAIModelConfig extends BaseAIModelConfig {
+export interface OpenAILLMConfig extends BaseLLMConfig {
   type: "openai";
   apiURL: string;
   apiKey: string;
 }
 
-export interface LocalAIModelConfig extends BaseAIModelConfig {
+export interface LocalLLMConfig extends BaseLLMConfig {
   type: "local";
   localPath: string;
 }
 
-export type AIModelConfig = OpenAIAIModelConfig | LocalAIModelConfig;
+export type LLMModelConfig = OpenAILLMConfig | LocalLLMConfig;
+
+export interface EmbeddingModelWithRepo {
+  type: "repo";
+  repoName: string;
+}
+
+export interface EmbeddingModelWithLocalPath {
+  type: "local";
+  localPath: string;
+}
+
+export type EmbeddingModelConfig =
+  | EmbeddingModelWithRepo
+  | EmbeddingModelWithLocalPath;
 
 export interface RAGConfig {
   maxRAGExamples: number;
@@ -23,20 +37,25 @@ export interface RAGConfig {
 
 export interface StoreSchema {
   user: {
-    directory?: string;
+    vaultDirectories: string[];
+    directoryFromPreviousSession?: string;
   };
-  aiModels: {
-    [modelName: string]: AIModelConfig;
+  LLMs: {
+    [modelName: string]: LLMModelConfig;
   };
-  defaultAIModel: string;
+  embeddingModels: {
+    [modelAlias: string]: EmbeddingModelConfig;
+  };
+  defaultLLM: string;
   defaultEmbedFuncRepo: string;
   RAG?: RAGConfig;
 }
 
 export enum StoreKeys {
-  UserDirectory = "user.directory",
-  AIModels = "aiModels",
-  DefaultAIModel = "defaultAIModel",
-  DefaultEmbedFuncRepo = "defaultEmbedFuncRepo",
+  DirectoryFromPreviousSession = "user.directoryFromPreviousSession",
+  LLMs = "LLMs",
+  EmbeddingModels = "embeddingModels",
+  DefaultLLM = "defaultLLM",
+  DefaultEmbeddingModelAlias = "defaultEmbeddingModelAlias",
   MaxRAGExamples = "RAG.maxRAGExamples",
 }
