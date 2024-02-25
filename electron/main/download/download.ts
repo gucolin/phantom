@@ -1,140 +1,137 @@
-// import {
-//   createRepo,
-//   uploadFiles,
-//   deleteFile,
-//   deleteRepo,
-//   listFiles,
-//   listModels,
-//   whoAmI,
-//   downloadFile,
-//   RepoDesignation,
-// } from "@huggingface/hub";
-// // import fs from "fs";
-// // import * as path from "path";
+import { net, ClientRequestConstructorOptions } from "electron";
+import { listFiles, downloadFile } from "@huggingface/hub";
+import fs from "fs";
+import * as path from "path";
 
-// import { promisify } from "util";
-// import { pipeline } from "stream";
+export const DownloadModelFilesFromHFRepo = async (
+  repo: string,
+  saveDirectory: string,
+  quantized = true
+) => {
+  // List the files:
+  const fileList = await listFiles({
+    repo: repo,
+    recursive: true,
+    fetch: customFetch,
+  });
 
-// import { writeFile } from "fs/promises";
-// // import { Blob } from "node-fetch";
-// import fs from "fs";
-// import * as path from "path";
+  const files = [];
+  for await (const file of fileList) {
+    if (file.type === "file") {
+      if (file.path.endsWith("onnx")) {
+        const isQuantizedFile = file.path.includes("quantized");
+        if (quantized === isQuantizedFile) {
+          files.push(file);
+        }
+      } else {
+        files.push(file);
+      }
+    }
+  }
 
-// // `response` is the Response object from your question
-// // async function saveResponseToFile(response: Response, filePath: string) {
-// //     // Check if the response is ok (status in the range 200-299)
-// //     if (!response.ok) {
-// //       throw new Error(`HTTP error! status: ${response.status}`);
-// //     }
+  console.log("files: ", files);
 
-// //     // Check if there's a body in the response
-// //     if (response.body) {
-// //       // Read the response body as a stream
-// //       const reader = response.body.getReader();
+  // Create an array of promises for each file download:
+  const downloadPromises = files.map((file) =>
+    downloadAndSaveFile(repo, file.path, path.join(saveDirectory, repo))
+  );
 
-// //       let chunks: Uint8Array[] = [];
-// //       let done, value;
-// //       while (({ done, value } = await reader.read()) && !done) {
-// //         chunks.push(value);
-// //       }
+  // Execute all download promises in parallel:
+  await Promise.all(downloadPromises);
+};
 
-// //       // Concatenate the chunks into a single Uint8Array
-// //       let data = new Uint8Array(chunks.reduce((acc, val) => acc.concat(Array.from(val)), []));
+async function downloadAndSaveFile(
+  repo: string,
+  HFFilePath: string,
+  systemFilePath: string
+): Promise<void> {
+  // Call the downloadFile function and await its result
+  const res = await downloadFile({
+    repo: repo,
+    path: HFFilePath,
+    fetch: customFetch,
+  });
 
-// //       // Write the data to a file
-// //       await writeFile(filePath, data);
+  if (!res) {
+    throw new Error(`Failed to download file from ${repo}/${HFFilePath}`);
+  }
 
-// //       console.log(`File written to ${filePath}`);
-// //     } else {
-// //       // Handle the case where there's no body
-// //       console.log('Response had no body to save.');
-// //     }
-// //   }
+  // Convert the Response object to an ArrayBuffer
+  const arrayBuffer = await res.arrayBuffer();
 
-// // Async function to list all files
+  // Convert the ArrayBuffer to a Buffer
+  const buffer = Buffer.from(arrayBuffer);
 
-// // async function downloadAndSaveFile(
-// //   repo: string,
-// //   filePath: string,
-// //   systemFilePath: string
-// // ): Promise<void> {
-// //   // Call the downloadFile function and await its result
-// //   const res = await downloadFile({
-// //     repo: repo,
-// //     path: filePath,
-// //   });
+  // Join the systemFilePath and filePath to create the full path
+  const fullPath = path.join(systemFilePath, HFFilePath);
+  const directory = path.dirname(fullPath);
+  if (!fs.existsSync(directory)) {
+    fs.mkdirSync(directory, { recursive: true });
+  }
+  // Save the Buffer to the full path
+  fs.writeFileSync(fullPath, buffer);
+  console.log(`Saved file to ${fullPath}`);
+}
 
-// //   if (!res) {
-// //     throw new Error(`Failed to download file from ${repo}/${filePath}`);
-// //   } // Convert the Response object to a Blob
-// //   const blob = await res.blob();
+export const customFetch = async (
+  input: RequestInfo | URL,
+  init?: RequestInit
+): Promise<Response> => {
+  const url = input instanceof URL ? input.href : input.toString();
+  const options = init || {};
 
-// //   // Create a new File object from the Blob
-// //   // Create a new File object from the Blob
-// //   const file = new File([blob], filePath);
+  return new Promise((resolve, reject) => {
+    const requestOptions: ClientRequestConstructorOptions = {
+      method: options.method || "GET",
+      url: url,
+    };
 
-// //   // Join the systemFilePath and filePath to create the full path
-// //   const fullPath = path.join(systemFilePath, filePath);
+    const request = net.request(requestOptions);
 
-// //   // Save the File object to the full path
-// //   fs.writeFileSync(fullPath, file);
-// // }
+    // Set headers
+    if (options.headers) {
+      Object.entries(options.headers).forEach(([key, value]) => {
+        request.setHeader(key, value as string);
+      });
+    }
 
-// async function downloadAndSaveFile(
-//   repo: string,
-//   HFFilePath: string,
-//   systemFilePath: string
-// ): Promise<void> {
-//   // Call the downloadFile function and await its result
-//   const res = await downloadFile({
-//     repo: repo,
-//     path: HFFilePath,
-//   });
+    // Handle request body
+    if (options.body) {
+      let bodyData;
+      if (options.body instanceof ArrayBuffer) {
+        bodyData = Buffer.from(options.body);
+      } else if (
+        typeof options.body === "string" ||
+        Buffer.isBuffer(options.body)
+      ) {
+        bodyData = options.body;
+      } else if (typeof options.body === "object") {
+        bodyData = JSON.stringify(options.body);
+        request.setHeader("Content-Type", "application/json");
+      } else {
+        reject(new Error("Unsupported body type"));
+        return;
+      }
+      request.write(bodyData);
+    }
 
-//   if (!res) {
-//     throw new Error(`Failed to download file from ${repo}/${HFFilePath}`);
-//   }
+    request.on("response", (response) => {
+      const chunks: Buffer[] = [];
+      response.on("data", (chunk) => chunks.push(chunk as Buffer));
+      response.on("end", () => {
+        const buffer = Buffer.concat(chunks);
+        resolve(
+          new Response(buffer, {
+            status: response.statusCode,
+            statusText: response.statusMessage,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            headers: new Headers(response.headers as any),
+          })
+        );
+      });
+    });
 
-//   // Convert the Response object to an ArrayBuffer
-//   const arrayBuffer = await res.arrayBuffer();
-
-//   // Convert the ArrayBuffer to a Buffer
-//   const buffer = Buffer.from(arrayBuffer);
-
-//   // Join the systemFilePath and filePath to create the full path
-//   const fullPath = path.join(systemFilePath, HFFilePath);
-//   const directory = path.dirname(fullPath);
-//   if (!fs.existsSync(directory)) {
-//     fs.mkdirSync(directory, { recursive: true });
-//   }
-//   // Save the Buffer to the full path
-//   fs.writeFileSync(fullPath, buffer);
-// }
-
-// export const DownloadModelFilesFromHFRepo = async (
-//   repo: string,
-//   // path: string,
-//   saveDirectory: string
-// ) => {
-//   // List the files:
-//   const fileList = await listFiles({
-//     repo: repo,
-//     // path: path,
-//     recursive: true,
-//   });
-
-//   const files = [];
-//   for await (let file of fileList) {
-//     if (file.type === "file") {
-//       files.push(file);
-//     }
-//   }
-
-//   // Create an array of promises for each file download:
-//   const downloadPromises = files.map((file) =>
-//     downloadAndSaveFile(repo, file.path, path.join(saveDirectory, repo))
-//   );
-
-//   // Execute all download promises in parallel:
-//   await Promise.all(downloadPromises);
-// };
+    request.on("error", (error) => reject(error));
+    request.end();
+  });
+};

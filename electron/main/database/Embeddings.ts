@@ -3,7 +3,13 @@ import { Pipeline, PreTrainedTokenizer } from "@xenova/transformers";
 import path from "path";
 import { app } from "electron";
 import { errorToString } from "../Generic/error";
-import { EmbeddingModelConfig } from "../Store/storeConfig";
+import {
+  EmbeddingModelConfig,
+  EmbeddingModelWithLocalPath,
+  EmbeddingModelWithRepo,
+} from "../Store/storeConfig";
+import { splitDirectoryPathIntoBaseAndRepo } from "../Files/Filesystem";
+import { DownloadModelFilesFromHFRepo } from "../download/download";
 
 export interface EnhancedEmbeddingFunction<T>
   extends lancedb.EmbeddingFunction<T> {
@@ -16,9 +22,20 @@ export async function createEmbeddingFunction(
   embeddingModelConfig: EmbeddingModelConfig,
   sourceColumn: string
 ): Promise<EnhancedEmbeddingFunction<string | number[]>> {
+  if (embeddingModelConfig.type === "local") {
+    return createEmbeddingFunctionForLocalModel(
+      embeddingModelConfig,
+      sourceColumn
+    );
+  }
+  return createEmbeddingFunctionForRepo(embeddingModelConfig, sourceColumn);
+}
+
+export async function createEmbeddingFunctionForLocalModel(
+  embeddingModelConfig: EmbeddingModelWithLocalPath,
+  sourceColumn: string
+): Promise<EnhancedEmbeddingFunction<string | number[]>> {
   let pipe: Pipeline;
-  let tokenizer: PreTrainedTokenizer;
-  let contextLength: number;
   let repoName = "";
   let functionName = "";
   try {
@@ -26,31 +43,23 @@ export async function createEmbeddingFunction(
     env.cacheDir = path.join(app.getPath("userData"), "models", "embeddings"); // set for all. Just to deal with library and remote inconsistencies
     console.log("config is: ", embeddingModelConfig);
 
-    if (embeddingModelConfig.type === "local") {
-      const pathParts = splitDirectoryPathIntoBaseAndRepo(
-        embeddingModelConfig.localPath
-      );
+    const pathParts = splitDirectoryPathIntoBaseAndRepo(
+      embeddingModelConfig.localPath
+    );
 
-      env.localModelPath = pathParts.localModelPath;
-      repoName = pathParts.repoName;
-      env.allowRemoteModels = false;
-      functionName = embeddingModelConfig.localPath;
-    } else if (embeddingModelConfig.type === "repo") {
-      repoName = embeddingModelConfig.repoName;
-      env.allowRemoteModels = true;
-      functionName = embeddingModelConfig.repoName;
-    }
+    env.localModelPath = pathParts.localModelPath;
+    repoName = pathParts.repoName;
+    env.allowRemoteModels = false;
+    functionName = embeddingModelConfig.localPath;
+
     try {
       pipe = (await pipeline(
         "feature-extraction",
         repoName
         // {cache_dir: cacheDir,
       )) as Pipeline;
-      contextLength = pipe.model.config.hidden_size;
-      // console.log("pipe tokenizer is: ", pipe.tokenizer);
-      tokenizer = pipe.tokenizer;
-      // pipe.tokenizer
     } catch (error) {
+      // here we could run a catch and try manually downloading the model...
       throw new Error(
         `Pipeline initialization failed for repo ${errorToString(error)}`
       );
@@ -59,90 +68,118 @@ export async function createEmbeddingFunction(
     console.error(`Resource initialization failed: ${errorToString(error)}`);
     throw new Error(`Resource initialization failed: ${errorToString(error)}`);
   }
+  const tokenize = setupTokenizeFunction(pipe.tokenizer);
+  const embed = await setupEmbedFunction(pipe);
 
   return {
     name: functionName,
-    contextLength: contextLength,
+    contextLength: pipe.model.config.hidden_size,
     sourceColumn,
-    embed: async (batch: (string | number[])[]): Promise<number[][]> => {
-      if (batch.length === 0 || batch[0].length === 0) {
-        return [];
-      }
-      if (typeof batch[0][0] === "number") {
-        return batch as number[][];
-      }
-      if (!pipe) {
-        throw new Error("Pipeline not initialized");
-      }
-      try {
-        const result: number[][] = await Promise.all(
-          batch.map(async (text) => {
-            try {
-              const res = await pipe(text, {
-                pooling: "mean",
-                normalize: true,
-              });
-              return Array.from(res.data);
-            } catch (error) {
-              throw new Error(
-                `Embedding process failed for text: ${errorToString(error)}`
-              );
-            }
-          })
-        );
-        return result;
-      } catch (error) {
-        throw new Error(
-          `Embedding batch process failed: ${errorToString(error)}`
-        );
-      }
-    },
-    tokenize: (data: (string | number[])[]): string[] => {
-      if (!tokenizer) {
-        throw new Error("Tokenizer not initialized");
-      }
-      try {
-        return data.map((text) => {
-          try {
-            const res = tokenizer(text);
-            return res;
-          } catch (error) {
-            throw new Error(
-              `Tokenization process failed for text: ${errorToString(error)}`
-            );
-          }
-        });
-      } catch (error) {
-        console.error(
-          `Tokenization batch process failed: ${errorToString(error)}`
-        );
-        throw new Error(
-          `Tokenization batch process failed: ${errorToString(error)}`
-        );
-      }
-    },
+    embed,
+    tokenize,
   };
 }
 
-function splitDirectoryPathIntoBaseAndRepo(fullPath: string) {
-  const normalizedPath = path.normalize(fullPath);
+export async function createEmbeddingFunctionForRepo(
+  embeddingModelConfig: EmbeddingModelWithRepo,
+  sourceColumn: string
+): Promise<EnhancedEmbeddingFunction<string | number[]>> {
+  let pipe: Pipeline;
+  let repoName = "";
+  let functionName = "";
+  try {
+    const { pipeline, env } = await import("@xenova/transformers");
+    env.cacheDir = path.join(app.getPath("userData"), "models", "embeddings"); // set for all. Just to deal with library and remote inconsistencies
+    console.log("config is: ", embeddingModelConfig);
 
-  const pathWithSeparator = normalizedPath.endsWith(path.sep)
-    ? normalizedPath
-    : `${normalizedPath}${path.sep}`;
-
-  if (
-    path.dirname(pathWithSeparator.slice(0, -1)) ===
-    pathWithSeparator.slice(0, -1)
-  ) {
-    return {
-      localModelPath: "", // No directory path before the root
-      repoName: path.basename(pathWithSeparator.slice(0, -1)), // Root directory name
-    };
+    repoName = embeddingModelConfig.repoName;
+    env.allowRemoteModels = true;
+    functionName = embeddingModelConfig.repoName;
+    try {
+      console.log("DOWNLOADING");
+      await DownloadModelFilesFromHFRepo(repoName, env.cacheDir);
+      console.log("FINISHED DOWNLOADING");
+      pipe = (await pipeline("feature-extraction", repoName)) as Pipeline;
+      console.log("PIPELINE INITIALIZED");
+    } catch (error) {
+      // here we could run a catch and try manually downloading the model...And perhaps we could start to think about issues that could arise with the
+      // directory already existing or something like that...
+      try {
+        pipe = (await pipeline("feature-extraction", repoName)) as Pipeline;
+      } catch (error) {
+        throw new Error(
+          `Pipeline initialization failed for repo ${errorToString(error)}`
+        );
+      }
+    }
+  } catch (error) {
+    throw new Error(`Resource initialization failed: ${errorToString(error)}`);
   }
+  const tokenize = setupTokenizeFunction(pipe.tokenizer);
+  const embed = await setupEmbedFunction(pipe);
 
-  const localModelPath = path.dirname(pathWithSeparator.slice(0, -1));
-  const repoName = path.basename(pathWithSeparator.slice(0, -1));
+  return {
+    name: functionName,
+    contextLength: pipe.model.config.hidden_size,
+    sourceColumn,
+    embed,
+    tokenize,
+  };
+}
 
-  return { localModelPath, repoName };
+function setupTokenizeFunction(
+  tokenizer: PreTrainedTokenizer
+): (data: (string | number[])[]) => string[] {
+  return (data: (string | number[])[]): string[] => {
+    if (!tokenizer) {
+      throw new Error("Tokenizer not initialized");
+    }
+
+    return data.map((text) => {
+      try {
+        const res = tokenizer(text);
+        return res;
+      } catch (error) {
+        throw new Error(
+          `Tokenization process failed for text: ${errorToString(error)}`
+        );
+      }
+    });
+  };
+}
+
+async function setupEmbedFunction(
+  pipe: Pipeline
+): Promise<(batch: (string | number[])[]) => Promise<number[][]>> {
+  return async (batch: (string | number[])[]): Promise<number[][]> => {
+    if (batch.length === 0 || batch[0].length === 0) {
+      return [];
+    }
+
+    if (typeof batch[0][0] === "number") {
+      return batch as number[][];
+    }
+
+    if (!pipe) {
+      throw new Error("Pipeline not initialized");
+    }
+
+    const result: number[][] = await Promise.all(
+      batch.map(async (text) => {
+        try {
+          const res = await pipe(text, {
+            pooling: "mean",
+            normalize: true,
+          });
+          return Array.from(res.data);
+        } catch (error) {
+          throw new Error(
+            `Embedding process failed for text: ${errorToString(error)}`
+          );
+        }
+      })
+    );
+
+    return result;
+  };
 }
