@@ -34,7 +34,7 @@ const OpenAISetupModal: React.FC<OpenAISetupModalProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={handleSave}>
-      <div className="w-[300px] ml-3 mr-2 mb-2">
+      <div className="w-[300px] ml-3 mr-2 my-2">
         <h3 className="font-semibold mb-0 text-slate-950">OpenAI Setup</h3>
         <p className="text-slate-900 mb-2 mt-2 text-sm">
           Enter your OpenAI API key below:
@@ -47,7 +47,7 @@ const OpenAISetupModal: React.FC<OpenAISetupModalProps> = ({
           onKeyDown={handleKeyPress}
           placeholder="OpenAI API Key"
         />
-        <p className="mt-2 text-slate-900 text-xs">
+        <p className="my-2 text-slate-900 text-xs">
           <i>
             You&apos;ll then be able to choose an OpenAI model in the model
             dropdown...

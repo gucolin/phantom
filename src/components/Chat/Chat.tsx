@@ -205,7 +205,7 @@ const ChatWithLLM: React.FC = () => {
           )}
         </div>
       </div>
-      <div className="p-4 bg-slate-100">
+      <div className="p-3 bg-slate-100">
         <div className="flex space-x-2 h-full">
           <Textarea
             onKeyDown={handleKeyDown}

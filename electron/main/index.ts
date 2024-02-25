@@ -61,9 +61,6 @@ if (!app.requestSingleInstanceLock()) {
   process.exit(0);
 }
 
-let win: BrowserWindow | null = null;
-let tray;
-
 const preload = join(__dirname, "../preload/index.js");
 const url = process.env.VITE_DEV_SERVER_URL;
 const indexHtml = join(process.env.DIST, "index.html");
@@ -73,7 +70,7 @@ let dbConnection: lancedb.Connection;
 async function createWindow() {
   const { x, y } = getNextWindowPosition();
   const { width, height } = getWindowSize();
-  win = new BrowserWindow({
+  const win = new BrowserWindow({
     title: "phantom",
     x: x,
     y: y,
@@ -133,7 +130,7 @@ app.whenReady().then(async () => {
   const theme = nativeTheme.shouldUseDarkColors ? "light" : "dark";
   const iconPath = path.join(__dirname, `../../public/phantom-${theme}.png`);
 
-  tray = new Tray(iconPath);
+  const tray = new Tray(iconPath);
 
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Item1', type: 'radio' },

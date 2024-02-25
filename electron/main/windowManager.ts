@@ -133,8 +133,8 @@ export function getWindowSize() {
   const { width, height } = primaryDisplay.workAreaSize;
 
   // Calculate size as a percentage of screen size
-  const windowWidth = Math.min(1200, width * 0.8); // e.g., 80% of screen width or 1200px
-  const windowHeight = Math.min(800, height * 0.8); // e.g., 80% of screen height or 800px
+  const windowWidth = Math.min(1550, width * 0.9); // e.g., 80% of screen width or 1550px
+  const windowHeight = Math.min(875, height * 0.9); // e.g., 80% of screen height or 800px
 
   return { width: windowWidth, height: windowHeight };
 }
