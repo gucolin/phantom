@@ -267,6 +267,7 @@ ipcMain.on("show-context-menu-file-item", (event, file) => {
                 return;
               }
               console.log(`File at ${file.path} was deleted successfully.`);
+              // TODO: Update table.
             });
           }
         });

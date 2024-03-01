@@ -173,7 +173,7 @@ export function unsanitizePathForFileSystem(dbPath: string): string {
   return dbPath.replace(/''/g, "'");
 }
 
-export const addTreeToTable = async (
+export const addFileTreeToDBTable = async (
   dbTable: LanceDBTableWrapper,
   fileTree: FileInfoTree
 ): Promise<void> => {
@@ -181,7 +181,7 @@ export const addTreeToTable = async (
   await dbTable.add(dbEntries);
 };
 
-export const removeTreeFromTable = async (
+export const removeFileTreeFromDBTable = async (
   dbTable: LanceDBTableWrapper,
   fileTree: FileInfoTree
 ): Promise<void> => {
@@ -197,13 +197,10 @@ export const updateFileInTable = async (
 ): Promise<void> => {
   await dbTable.deleteDBItemsByFilePaths([filePath]);
   const currentTimestamp: Date = new Date();
-  console.log("starting chunk");
   const chunkedContentList = await chunkMarkdownByHeadingsAndByCharsIfBig(
     content
   );
-  console.log("done chunk");
   const dbEntries = chunkedContentList.map((content, index) => {
-    console.log("adding in content: ", content);
     return {
       notepath: filePath,
       content: content,
@@ -212,7 +209,6 @@ export const updateFileInTable = async (
       filemodified: currentTimestamp,
     };
   });
-  console.log("db entreis: ", dbEntries.length);
   await dbTable.add(dbEntries);
 };
 

@@ -137,19 +137,37 @@ export const registerStoreHandlers = (
   });
 
   ipcMain.handle(
-    "setup-new-llm",
+    "add-or-update-llm",
     async (event, modelName: string, modelConfig: LLMModelConfig) => {
       console.log("setting up new local model", modelConfig);
-      return await addNewLLMSchemaToStore(store, modelName, modelConfig);
+      return await addOrUpdateLLMSchemaInStore(store, modelName, modelConfig);
     }
   );
+
+  ipcMain.handle(
+    "delete-local-llm",
+    async (event, modelName: string, modelConfig: LLMModelConfig) => {
+      console.log("deleting local model", modelConfig);
+      return await deleteLLMSchemafromStore(store, modelName);
+    }
+  );
+
+
 
   ipcMain.on("get-default-embedding-model", (event) => {
     event.returnValue = store.get(StoreKeys.DefaultEmbeddingModelAlias);
   });
+
+  ipcMain.on("get-hardware-config", (event) => {
+    event.returnValue = store.get(StoreKeys.Hardware);
+  });
+
+  ipcMain.on("set-hardware-config", (event, hardwareConfig) => {
+    store.set(StoreKeys.Hardware, hardwareConfig);
+  });
 };
 
-export async function addNewLLMSchemaToStore(
+export async function addOrUpdateLLMSchemaInStore(
   store: Store<StoreSchema>,
   modelName: string,
   modelConfig: LLMModelConfig
@@ -157,30 +175,51 @@ export async function addNewLLMSchemaToStore(
   const existingModels =
     (store.get(StoreKeys.LLMs) as Record<string, LLMModelConfig>) || {};
 
-  if (!existingModels[modelName]) {
-    const isNotValid = validateAIModelConfig(modelName, modelConfig);
-    if (isNotValid) {
-      throw new Error(isNotValid);
-    }
+  const isNotValid = validateAIModelConfig(modelName, modelConfig);
+  if (isNotValid) {
+    throw new Error(isNotValid);
+  }
 
-    const updatedModels = {
-      ...existingModels,
-      [modelName]: modelConfig,
-    };
+  const updatedModels = {
+    ...existingModels,
+    [modelName]: modelConfig,
+  };
 
-    store.set(StoreKeys.LLMs, updatedModels);
-    store.set(StoreKeys.DefaultLLM, modelName);
-    return "Model set up successfully";
+  store.set(StoreKeys.LLMs, updatedModels);
+
+  store.set(StoreKeys.DefaultLLM, modelName);
+
+  return existingModels[modelName]
+    ? "Model updated successfully"
+    : "Model set up successfully";
+}
+
+export async function deleteLLMSchemafromStore(
+  store: Store<StoreSchema>,
+  modelName: string,
+): Promise<string> {
+  const existingModels =
+    (store.get(StoreKeys.LLMs) as Record<string, LLMModelConfig>) || {};
+
+  if (existingModels[modelName]) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { [modelName]: _, ...remainingModels } = existingModels;
+    store.set(StoreKeys.LLMs, remainingModels);
+    return "Model deleted successfully";
   } else {
-    return "Model already exists";
+    return "Model does not exist";
   }
 }
+
+
 
 export function setupDefaultStoreValues(store: Store<StoreSchema>) {
   if (!store.get(StoreKeys.MaxRAGExamples)) {
     store.set(StoreKeys.MaxRAGExamples, 15);
   }
   setupDefaultEmbeddingModels(store);
+
+  setupDefaultHardwareConfig(store);
 }
 
 export function getDefaultEmbeddingModelConfig(
@@ -207,6 +246,18 @@ export function getDefaultEmbeddingModelConfig(
 
   return model;
 }
+
+const setupDefaultHardwareConfig = (store: Store<StoreSchema>) => {
+  const hardwareConfig = store.get(StoreKeys.Hardware);
+
+  if (!hardwareConfig) {
+    store.set(StoreKeys.Hardware, {
+      useGPU: process.platform === "darwin" && process.arch === "arm64",
+      useCUDA: false,
+      useVulkan: false,
+    });
+  }
+};
 
 const setupDefaultEmbeddingModels = (store: Store<StoreSchema>) => {
   const embeddingModels = store.get(StoreKeys.EmbeddingModels);
