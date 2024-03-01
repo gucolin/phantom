@@ -3,6 +3,7 @@ import {
   EmbeddingModelConfig,
   EmbeddingModelWithLocalPath,
   EmbeddingModelWithRepo,
+  HardwareConfig,
   LLMModelConfig,
 } from "electron/main/Store/storeConfig";
 import { FileInfoNode, FileInfoTree } from "electron/main/Files/Types";
@@ -75,7 +76,11 @@ declare global {
         modelName: string,
         modelConfig: LLMModelConfig
       ) => Promise<void>;
-      setupNewLLM: (
+      addOrUpdateLLM: (
+        modelName: string,
+        modelConfig: LLMModelConfig
+      ) => Promise<void>;
+      deleteLocalLLM: (
         modelName: string,
         modelConfig: LLMModelConfig
       ) => Promise<void>;
@@ -93,6 +98,8 @@ declare global {
       removeEmbeddingModel: (modelName: string) => void;
       getNoOfRAGExamples: () => number;
       setNoOfRAGExamples: (noOfExamples: number) => void;
+      getHardwareConfig: () => HardwareConfig;
+      setHardwareConfig: (config: HardwareConfig) => void;
     };
   }
 }
@@ -144,8 +151,11 @@ contextBridge.exposeInMainWorld("electronStore", {
   updateLLMConfig: async (modelName: string, modelConfig: LLMModelConfig) => {
     return ipcRenderer.invoke("update-llm-config", modelName, modelConfig);
   },
-  setupNewLLM: async (modelName: string, modelConfig: LLMModelConfig) => {
-    return ipcRenderer.invoke("setup-new-llm", modelName, modelConfig);
+  addOrUpdateLLM: async (modelName: string, modelConfig: LLMModelConfig) => {
+    return ipcRenderer.invoke("add-or-update-llm", modelName, modelConfig);
+  },
+  deleteLocalLLM: async (modelName: string, modelConfig: LLMModelConfig) => {
+    return ipcRenderer.invoke("delete-local-llm", modelName, modelConfig);
   },
   setDefaultLLM: (modelName: string) => {
     ipcRenderer.send("set-default-llm", modelName);
@@ -186,6 +196,12 @@ contextBridge.exposeInMainWorld("electronStore", {
   },
   setNoOfRAGExamples: (noOfExamples: number) => {
     ipcRenderer.send("set-no-of-rag-examples", noOfExamples);
+  },
+  getHardwareConfig: () => {
+    return ipcRenderer.sendSync("get-hardware-config");
+  },
+  setHardwareConfig: (config: HardwareConfig) => {
+    ipcRenderer.send("set-hardware-config", config);
   },
 });
 

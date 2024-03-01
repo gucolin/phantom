@@ -5,6 +5,7 @@ import { errorToString } from "@/functions/error";
 import Textarea from "@mui/joy/Textarea";
 import CircularProgress from "@mui/material/CircularProgress";
 import ReactMarkdown from "react-markdown";
+import { FiRefreshCw } from "react-icons/fi"; // Importing refresh icon from React Icons
 
 const ChatWithLLM: React.FC = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -16,12 +17,11 @@ const ChatWithLLM: React.FC = () => {
 
   const [currentBotMessage, setCurrentBotMessage] =
     useState<ChatbotMessage | null>(null);
-
+  const fetchDefaultModel = async () => {
+    const defaultModelName = await window.electronStore.getDefaultLLM();
+    setDefaultModel(defaultModelName);
+  };
   useEffect(() => {
-    const fetchDefaultModel = async () => {
-      const defaultModelName = await window.electronStore.getDefaultLLM();
-      setDefaultModel(defaultModelName);
-    };
     fetchDefaultModel();
   }, []);
 
@@ -122,6 +122,16 @@ const ChatWithLLM: React.FC = () => {
     };
   }, [sessionId]);
 
+  const restartSession = async () => {
+    if (sessionId) {
+      console.log("Deleting session:", sessionId);
+      await window.llm.deleteSession(sessionId);
+    }
+    const newSessionId = await initializeSession();
+    setSessionId(newSessionId);
+    fetchDefaultModel();
+  };
+
   const startStreamingResponse = async (
     sessionId: string,
     prompt: string,
@@ -162,8 +172,20 @@ const ChatWithLLM: React.FC = () => {
 
   return (
     <div className="flex flex-col w-full h-full mx-auto border shadow-lg overflow-hidden bg-gray-700">
+      <div className="flex w-full items-center">
+        <div className="flex-grow flex justify-center items-center m-0 mt-1 ml-2 mb-1 p-0">
+          {defaultModel ? (
+            <p className="m-0 p-0 text-gray-500">{defaultModel}</p>
+          ) : (
+            <p className="m-0 p-0 text-gray-500">No default model selected</p>
+          )}
+        </div>
+        <div className="pr-2 pt-1 cursor-pointer" onClick={restartSession}>
+          <FiRefreshCw className="text-white" /> {/* Icon */}
+        </div>
+      </div>
       <div className="flex-1 overflow-auto p-4 pt-0 bg-transparent">
-        {messages.length === 0 && !currentBotMessage && (
+        {/* {messages.length === 0 && !currentBotMessage && (
           <div>
             {defaultModel ? (
               <p className="text-center text-gray-500">
@@ -175,7 +197,7 @@ const ChatWithLLM: React.FC = () => {
               </p>
             )}
           </div>
-        )}
+        )} */}
         <div className="space-y-2 mt-4">
           {messages.map((message, index) => (
             <ReactMarkdown
@@ -204,7 +226,7 @@ const ChatWithLLM: React.FC = () => {
           )}
         </div>
       </div>
-      <div className="p-4 bg-gray-500">
+      <div className="p-3 bg-gray-500">
         <div className="flex space-x-2 h-full">
           <Textarea
             onKeyDown={handleKeyDown}
