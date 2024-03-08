@@ -47,6 +47,7 @@ export function GetFilesInfoTree(
           path: pathInput,
           relativePath: parentRelativePath,
           dateModified: stats.mtime,
+          dateCreated: stats.birthtime, // Add the birthtime property here
         });
       }
     } else {
@@ -73,6 +74,7 @@ export function GetFilesInfoTree(
           path: pathInput,
           relativePath: parentRelativePath,
           dateModified: stats.mtime,
+          dateCreated: stats.birthtime,
           children: childNodes,
         });
       }
@@ -83,7 +85,6 @@ export function GetFilesInfoTree(
 
   return fileInfoTree;
 }
-
 function isHidden(fileName: string): boolean {
   return fileName.startsWith(".");
 }
@@ -97,6 +98,7 @@ export function flattenFileInfoTree(tree: FileInfoTree): FileInfo[] {
         path: node.path,
         relativePath: node.relativePath,
         dateModified: node.dateModified,
+        dateCreated: node.dateCreated,
       });
     }
 
@@ -108,10 +110,10 @@ export function flattenFileInfoTree(tree: FileInfoTree): FileInfo[] {
   return flatList;
 }
 
-export function writeFileSyncRecursive(
+export function createFileRecursive(
   filePath: string,
   content: string,
-  charset: BufferEncoding
+  charset?: BufferEncoding
 ): void {
   const dirname = path.dirname(filePath);
   if (!fs.existsSync(dirname)) {

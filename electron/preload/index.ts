@@ -4,10 +4,17 @@ import {
   EmbeddingModelWithLocalPath,
   EmbeddingModelWithRepo,
   HardwareConfig,
+  LLMGenerationParameters,
   LLMModelConfig,
 } from "electron/main/Store/storeConfig";
-import { FileInfoNode, FileInfoTree } from "electron/main/Files/Types";
+import {
+  AugmentPromptWithFileProps,
+  FileInfoNode,
+  FileInfoTree,
+  WriteFileProps,
+} from "electron/main/Files/Types";
 import { DBEntry, DBQueryResult } from "electron/main/database/Schema";
+import { PromptWithContextLimit } from "electron/main/Prompts/Prompts";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ReceiveCallback = (...args: any[]) => void;
 
@@ -44,7 +51,8 @@ declare global {
       openDirectoryDialog: () => Promise<string[]>;
       openFileDialog: (fileExtensions?: string[]) => Promise<string[]>;
       getFilesForWindow: () => Promise<FileInfoTree>;
-      writeFile: (filePath: string, content: string) => Promise<void>;
+      writeFile: (writeFileProps: WriteFileProps) => Promise<void>;
+      indexFileInDatabase: (filePath: string) => Promise<void>;
       readFile: (filePath: string) => Promise<string>;
       createFile: (filePath: string, content: string) => Promise<void>;
       createDirectory: (dirPath: string) => Promise<void>;
@@ -53,6 +61,9 @@ declare global {
         sourcePath: string,
         destinationPath: string
       ) => Promise<void>;
+      augmentPromptWithFile: (
+        augmentPromptWithFileProps: AugmentPromptWithFileProps
+      ) => Promise<PromptWithContextLimit>;
     };
     path: {
       basename: (pathString: string) => string;
@@ -100,6 +111,8 @@ declare global {
       setNoOfRAGExamples: (noOfExamples: number) => void;
       getHardwareConfig: () => HardwareConfig;
       setHardwareConfig: (config: HardwareConfig) => void;
+      getLLMGenerationParams: () => LLMGenerationParameters;
+      setLLMGenerationParams: (params: LLMGenerationParameters) => void;
     };
   }
 }
@@ -203,6 +216,12 @@ contextBridge.exposeInMainWorld("electronStore", {
   setHardwareConfig: (config: HardwareConfig) => {
     ipcRenderer.send("set-hardware-config", config);
   },
+  getLLMGenerationParams: () => {
+    return ipcRenderer.sendSync("get-llm-generation-params");
+  },
+  setLLMGenerationParams: (params: LLMGenerationParameters) => {
+    ipcRenderer.send("set-llm-generation-params", params);
+  },
 });
 
 contextBridge.exposeInMainWorld("ipcRenderer", {
@@ -227,8 +246,12 @@ contextBridge.exposeInMainWorld("files", {
     return ipcRenderer.invoke("get-files-for-window");
   },
 
-  writeFile: async (filePath: string, content: string) => {
-    return ipcRenderer.invoke("write-file", filePath, content);
+  writeFile: async (writeFileProps: WriteFileProps) => {
+    return ipcRenderer.invoke("write-file", writeFileProps);
+  },
+
+  indexFileInDatabase: async (filePath: string) => {
+    return ipcRenderer.invoke("index-file-in-database", filePath);
   },
 
   createFile: async (filePath: string, content: string) => {
@@ -247,6 +270,14 @@ contextBridge.exposeInMainWorld("files", {
 
   moveFileOrDir: async (sourcePath: string, destinationPath: string) => {
     return ipcRenderer.invoke("move-file-or-dir", sourcePath, destinationPath);
+  },
+  augmentPromptWithFile: async (
+    augmentPromptWithFileProps: AugmentPromptWithFileProps
+  ): Promise<PromptWithContextLimit> => {
+    return ipcRenderer.invoke(
+      "augment-prompt-with-file",
+      augmentPromptWithFileProps
+    );
   },
 });
 
