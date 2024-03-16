@@ -12,18 +12,14 @@ import {
 } from "./Filesystem";
 import * as fs from "fs";
 import { updateFileInTable } from "../database/TableHelperFunctions";
-import {
-  getVaultDirectoryForContents,
-  getWindowInfoForContents,
-  activeWindows,
-} from "../windowManager";
 import { LLMSessions } from "../llm/llmSessionHandlers";
 import {
   PromptWithContextLimit,
   createPromptWithContextLimitFromContent,
 } from "../Prompts/Prompts";
+import WindowsManager from "../windowManager";
 
-export const registerFileHandlers = () => {
+export const registerFileHandlers = (windowsManager: WindowsManager) => {
   ipcMain.handle("join-path", (event, ...args) => {
     return path.join(...args);
   });
@@ -31,8 +27,7 @@ export const registerFileHandlers = () => {
   ipcMain.handle(
     "get-files-for-window",
     async (event): Promise<FileInfoTree> => {
-      const directoryPath = getVaultDirectoryForContents(
-        activeWindows,
+      const directoryPath = windowsManager.getVaultDirectoryForWinContents(
         event.sender
       );
       if (!directoryPath) return [];
@@ -50,6 +45,54 @@ export const registerFileHandlers = () => {
   );
 
   ipcMain.handle(
+    "delete-file",
+    async (event, filePath: string): Promise<void> => {
+      console.log("Deleting file", filePath);
+      fs.stat(filePath, async (err, stats) => {
+        if (err) {
+          console.error("An error occurred:", err);
+          return;
+        }
+
+        if (stats.isDirectory()) {
+          // For directories (Node.js v14.14.0 and later)
+          fs.rm(filePath, { recursive: true }, (err) => {
+            if (err) {
+              console.error("An error occurred:", err);
+              return;
+            }
+            console.log(`Directory at ${filePath} was deleted successfully.`);
+          });
+
+          const windowInfo = windowsManager.getWindowInfoForContents(
+            event.sender
+          );
+          if (!windowInfo) {
+            throw new Error("Window info not found.");
+          }
+          await windowInfo.dbTableClient.deleteDBItemsByFilePaths([filePath]);
+        } else {
+          fs.unlink(filePath, (err) => {
+            if (err) {
+              console.error("An error occurred:", err);
+              return;
+            }
+            console.log(`File at ${filePath} was deleted successfully.`);
+          });
+
+          const windowInfo = windowsManager.getWindowInfoForContents(
+            event.sender
+          );
+          if (!windowInfo) {
+            throw new Error("Window info not found.");
+          }
+          await windowInfo.dbTableClient.deleteDBItemsByFilePaths([filePath]);
+        }
+      });
+    }
+  );
+
+  ipcMain.handle(
     "write-file",
     async (event, writeFileProps: WriteFileProps) => {
       fs.writeFileSync(
@@ -61,7 +104,7 @@ export const registerFileHandlers = () => {
   );
 
   ipcMain.handle("index-file-in-database", async (event, filePath: string) => {
-    const windowInfo = getWindowInfoForContents(activeWindows, event.sender);
+    const windowInfo = windowsManager.getWindowInfoForContents(event.sender);
     if (!windowInfo) {
       throw new Error("Window info not found.");
     }
@@ -102,7 +145,7 @@ export const registerFileHandlers = () => {
   ipcMain.handle(
     "move-file-or-dir",
     async (event, sourcePath: string, destinationPath: string) => {
-      const windowInfo = getWindowInfoForContents(activeWindows, event.sender);
+      const windowInfo = windowsManager.getWindowInfoForContents(event.sender);
       if (!windowInfo) {
         throw new Error("Window info not found.");
       }
