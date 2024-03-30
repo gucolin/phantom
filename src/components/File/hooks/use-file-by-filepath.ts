@@ -9,11 +9,7 @@ import Text from "@tiptap/extension-text";
 import Link from "@tiptap/extension-link";
 import "../tiptap.scss";
 import { useDebounce } from "use-debounce";
-
-import TurndownService from "turndown";
-import { marked } from "marked";
-
-const turndownService = new TurndownService();
+import { Markdown } from "tiptap-markdown";
 
 export const useFileByFilepath = () => {
   const [currentlyOpenedFilePath, setCurrentlyOpenedFilePath] = useState<
@@ -26,7 +22,17 @@ export const useFileByFilepath = () => {
 		2. When the component unmounts
 		3. when the file is deleted
 	 */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  Markdown.configure({
+    html: true, // Allow HTML input/output
+    tightLists: true, // No <p> inside <li> in markdown output
+    tightListClass: "tight", // Add class to <ul> allowing you to remove <p> margins when tight
+    bulletListMarker: "-", // <li> prefix in markdown output
+    linkify: false, // Create links from "https://..." text
+    breaks: true, // New lines (\n) in markdown input are converted to <br>
+    transformPastedText: false, // Allow to paste markdown text in the editor
+    transformCopiedText: false, // Copied text is transformed to markdown
+  });
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -34,6 +40,7 @@ export const useFileByFilepath = () => {
       Paragraph,
       Text,
       TaskList,
+      Markdown,
       TaskItem.configure({
         nested: true,
       }),
@@ -62,7 +69,7 @@ export const useFileByFilepath = () => {
     indexFileInDatabase: boolean = false
   ) => {
     if (editor?.getHTML() !== null && filePath !== null) {
-      const markdown = turndownService.turndown(editor?.getHTML() || "");
+      const markdown = editor?.storage.markdown.getMarkdown();
       await window.files.writeFile({
         filePath: filePath,
         content: markdown,
@@ -79,21 +86,14 @@ export const useFileByFilepath = () => {
     saveEditorContentToPath(editor, currentlyOpenedFilePath, true);
 
     const fileContent = (await window.files.readFile(newFilePath)) ?? "";
-    const htmlContent = await marked.parse(fileContent);
     setCurrentlyOpenedFilePath(newFilePath);
 
-    editor?.commands.setContent(htmlContent);
+    editor?.commands.setContent(fileContent);
   };
 
   // delete file depending on file path returned by the listener
   useEffect(() => {
-    let active = true;
-    console.log("now active");
     const deleteFile = async (path: string) => {
-      console.log("listener got file path: ", path);
-      if (!active) return;
-      console.log("listener is active");
-
       await window.files.deleteFile(path);
 
       // if it is the current file, clear the content and set filepath to null so that it won't save anything else
@@ -103,12 +103,13 @@ export const useFileByFilepath = () => {
       }
     };
 
-    window.ipcRenderer.receive("delete-file-listener", deleteFile);
+    const removeDeleteFileListener = window.ipcRenderer.receive(
+      "delete-file-listener",
+      deleteFile
+    );
 
     return () => {
-      active = false;
-      console.log("cleanup effect ran");
-      window.ipcRenderer.removeListener("delete-file-listener", deleteFile);
+      removeDeleteFileListener();
     };
   }, [currentlyOpenedFilePath, editor]);
 
@@ -137,7 +138,7 @@ export const useFileByFilepath = () => {
         editor &&
         editor.getHTML() !== null
       ) {
-        const markdown = turndownService.turndown(editor.getHTML() || "");
+        const markdown = editor?.storage.markdown.getMarkdown();
         await window.files.writeFile({
           filePath: currentlyOpenedFilePath,
           content: markdown,
@@ -148,14 +149,14 @@ export const useFileByFilepath = () => {
       window.electron.destroyWindow();
     };
 
-    window.ipcRenderer.receive("prepare-for-window-close", handleWindowClose);
+    const removeWindowCloseListener = window.ipcRenderer.receive(
+      "prepare-for-window-close",
+      handleWindowClose
+    );
 
     return () => {
       active = false;
-      window.ipcRenderer.removeListener(
-        "prepare-for-window-close",
-        handleWindowClose
-      );
+      removeWindowCloseListener();
     };
   }, [currentlyOpenedFilePath, editor]);
 

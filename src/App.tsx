@@ -33,7 +33,10 @@ const App: React.FC<AppProps> = () => {
       });
       setIndexingProgress(1);
     };
-    window.ipcRenderer.receive("indexing-error", handleIndexingError);
+    window.ipcRenderer.receive(
+      "error-to-display-in-window",
+      handleIndexingError
+    );
   }, []);
 
   useEffect(() => {
@@ -52,7 +55,7 @@ const App: React.FC<AppProps> = () => {
 
   return (
     <div className="max-h-screen font-sans bg-neutral-800">
-      <ToastContainer />
+      <ToastContainer className="mt-4" />
       {userHasConfiguredSettingsForIndexing ? (
         indexingProgress < 1 ? (
           <IndexingProgress indexingProgress={indexingProgress} />

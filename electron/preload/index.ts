@@ -1,11 +1,11 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { IpcRendererEvent, contextBridge, ipcRenderer } from "electron";
 import {
   EmbeddingModelConfig,
   EmbeddingModelWithLocalPath,
   EmbeddingModelWithRepo,
   HardwareConfig,
   LLMGenerationParameters,
-  LLMModelConfig,
+  LLMConfig,
 } from "electron/main/Store/storeConfig";
 import {
   AugmentPromptWithFileProps,
@@ -15,6 +15,8 @@ import {
 } from "electron/main/Files/Types";
 import { DBEntry, DBQueryResult } from "electron/main/database/Schema";
 import { PromptWithContextLimit } from "electron/main/Prompts/Prompts";
+import { PromptWithRagResults } from "electron/main/database/dbSessionHandlers";
+import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ReceiveCallback = (...args: any[]) => void;
 
@@ -22,8 +24,7 @@ declare global {
   interface Window {
     ipcRenderer: {
       on: (channel: string, listener: (...args: unknown[]) => void) => void;
-      removeListener: (channel: string, listener: ReceiveCallback) => void;
-      receive: (channel: string, callback: ReceiveCallback) => void;
+      receive: (channel: string, callback: ReceiveCallback) => () => void;
     };
     electron: {
       openExternal: (url: string) => void;
@@ -44,9 +45,9 @@ declare global {
       indexFilesInDirectory: () => void;
       augmentPromptWithRAG: (
         prompt: string,
-        llmSessionID: string,
+        llmName: string,
         filter?: string
-      ) => Promise<string>;
+      ) => Promise<PromptWithRagResults>;
       getDatabaseFields: () => Promise<Record<string, string>>;
     };
     files: {
@@ -72,34 +73,22 @@ declare global {
       basename: (pathString: string) => string;
     };
     llm: {
-      createSession: (sessionId: string) => Promise<string>;
-      doesSessionExist: (sessionId: string) => Promise<boolean>;
-      deleteSession: (sessionId: string) => Promise<string>;
-      getOrCreateSession: (sessionId: string) => Promise<string>;
-      initializeStreamingResponse: (
-        sessionId: string,
-        prompt: string,
-        ignoreChatHistory?: boolean
+      streamingLLMResponse: (
+        llmName: string,
+        llmConfig: LLMConfig,
+        messageHistory: ChatCompletionMessageParam[]
       ) => Promise<string>;
+      getLLMConfigs: () => Promise<LLMConfig[]>;
+      getLLMConfigByName: (modelName: string) => LLMConfig;
+      pullOllamaModel: (modelName: string) => Promise<void>;
+      addOrUpdateLLM: (modelConfig: LLMConfig) => Promise<void>;
+      removeLLM: (modelNameToDelete: string) => Promise<void>;
+      setDefaultLLM: (modelName: string) => void;
+      getDefaultLLMName: () => string;
     };
     electronStore: {
       setUserDirectory: (path: string) => Promise<void>;
       getUserDirectory: () => string;
-      getLLMConfigs: () => Promise<Record<string, LLMModelConfig>>;
-      updateLLMConfig: (
-        modelName: string,
-        modelConfig: LLMModelConfig
-      ) => Promise<void>;
-      addOrUpdateLLM: (
-        modelName: string,
-        modelConfig: LLMModelConfig
-      ) => Promise<void>;
-      deleteLocalLLM: (
-        modelName: string,
-        modelConfig: LLMModelConfig
-      ) => Promise<void>;
-      setDefaultLLM: (modelName: string) => void;
-      getDefaultLLM: () => string;
       getDefaultEmbeddingModel: () => string;
       setDefaultEmbeddingModel: (repoName: string) => void;
       addNewLocalEmbeddingModel: (model: EmbeddingModelWithLocalPath) => void;
@@ -136,13 +125,13 @@ contextBridge.exposeInMainWorld("database", {
   },
   augmentPromptWithRAG: async (
     prompt: string,
-    llmSessionID: string,
+    llmName: string,
     filter?: string
-  ): Promise<DBEntry[]> => {
+  ): Promise<PromptWithRagResults> => {
     return ipcRenderer.invoke(
       "augment-prompt-with-rag",
       prompt,
-      llmSessionID,
+      llmName,
       filter
     );
   },
@@ -164,25 +153,6 @@ contextBridge.exposeInMainWorld("electronStore", {
   },
   getUserDirectory: () => {
     return ipcRenderer.sendSync("get-user-directory");
-  },
-  getLLMConfigs: async (): Promise<LLMModelConfig[]> => {
-    return ipcRenderer.invoke("get-llm-configs");
-  },
-  updateLLMConfig: async (modelName: string, modelConfig: LLMModelConfig) => {
-    return ipcRenderer.invoke("update-llm-config", modelName, modelConfig);
-  },
-  addOrUpdateLLM: async (modelName: string, modelConfig: LLMModelConfig) => {
-    return ipcRenderer.invoke("add-or-update-llm", modelName, modelConfig);
-  },
-  deleteLocalLLM: async (modelName: string, modelConfig: LLMModelConfig) => {
-    return ipcRenderer.invoke("delete-local-llm", modelName, modelConfig);
-  },
-  setDefaultLLM: (modelName: string) => {
-    ipcRenderer.send("set-default-llm", modelName);
-  },
-
-  getDefaultLLM: () => {
-    return ipcRenderer.sendSync("get-default-llm");
   },
 
   getDefaultEmbeddingModel: () => {
@@ -233,9 +203,15 @@ contextBridge.exposeInMainWorld("electronStore", {
 
 contextBridge.exposeInMainWorld("ipcRenderer", {
   on: ipcRenderer.on,
-  removeListener: ipcRenderer.removeListener,
   receive: (channel: string, callback: (...args: unknown[]) => void) => {
-    ipcRenderer.on(channel, (event, ...args) => callback(...args));
+    // this creates a constant copy of the callback, thus ensuring that the removed listener is the same as the one added
+    const subscription = (event: IpcRendererEvent, ...args: unknown[]) =>
+      callback(...args);
+
+    ipcRenderer.on(channel, subscription);
+    return () => {
+      ipcRenderer.removeListener(channel, subscription);
+    };
   },
 });
 
@@ -297,28 +273,40 @@ contextBridge.exposeInMainWorld("path", {
 });
 
 contextBridge.exposeInMainWorld("llm", {
-  createSession: async (sessionId: string) => {
-    return await ipcRenderer.invoke("create-session", sessionId);
-  },
-  doesSessionExist: async (sessionId: string) => {
-    return await ipcRenderer.invoke("does-session-exist", sessionId);
-  },
-  deleteSession: async (sessionId: string) => {
-    return await ipcRenderer.invoke("delete-session", sessionId);
-  },
-  getOrCreateSession: async (sessionId: string) => {
-    return await ipcRenderer.invoke("get-or-create-session", sessionId);
-  },
-  initializeStreamingResponse: async (
-    sessionId: string,
-    prompt: string,
-    ignoreChatHistory?: boolean
+  streamingLLMResponse: async (
+    llmName: string,
+    llmConfig: LLMConfig,
+    messageHistory: ChatCompletionMessageParam[]
   ) => {
     return await ipcRenderer.invoke(
-      "initialize-streaming-response",
-      sessionId,
-      prompt,
-      ignoreChatHistory
+      "streaming-llm-response",
+      llmName,
+      llmConfig,
+      messageHistory
     );
+  },
+
+  getLLMConfigs: async (): Promise<LLMConfig[]> => {
+    return ipcRenderer.invoke("get-llm-configs");
+  },
+  getLLMConfigByName: (modelName: string) => {
+    return ipcRenderer.sendSync("get-llm-config-by-name", modelName);
+  },
+
+  pullOllamaModel: async (modelName: string) => {
+    return await ipcRenderer.invoke("pull-ollama-model", modelName);
+  },
+  addOrUpdateLLM: async (modelConfig: LLMConfig) => {
+    return ipcRenderer.invoke("add-or-update-llm", modelConfig);
+  },
+  removeLLM: async (modelNameToDelete: string) => {
+    return await ipcRenderer.invoke("remove-llm", modelNameToDelete);
+  },
+  setDefaultLLM: (modelName: string) => {
+    ipcRenderer.send("set-default-llm", modelName);
+  },
+
+  getDefaultLLMName: () => {
+    return ipcRenderer.sendSync("get-default-llm-name");
   },
 });

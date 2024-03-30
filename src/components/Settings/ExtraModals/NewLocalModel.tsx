@@ -45,16 +45,14 @@ const LocalModelModal: React.FC<LocalModelModalProps> = ({
     console.log("newModelName: ", newModelName);
     const newConfig: LocalLLMConfig = {
       type: "local",
+      modelName: newModelName,
       localPath: newModelPath,
       contextLength: parseInt(selectedContextLength),
       engine: "llamacpp",
     };
 
-    const res = await window.electronStore.addOrUpdateLLM(
-      newModelName,
-      newConfig
-    );
-    console.log("setupNewLocalLLM response: ", res);
+    await window.llm.addOrUpdateLLM(newConfig);
+    await window.llm.setDefaultLLM(newModelName);
     onClose();
   };
 
@@ -65,10 +63,9 @@ const LocalModelModal: React.FC<LocalModelModalProps> = ({
         <p className="text-white text-sm mb-2 mt-1">
           To use a local model you need to download a GGUF model file and attach
           it here. More info is available in the{" "}
-          <ExternalLink
-            url="https://www.reorproject.org/docs/documentation/llm"
-            label="docs"
-          />
+          <ExternalLink href="https://www.reorproject.org/docs/documentation/llm">
+            docs
+          </ExternalLink>
           .
         </p>
 
@@ -82,11 +79,9 @@ const LocalModelModal: React.FC<LocalModelModalProps> = ({
         <p className="text-white text-xs mb-2 mt-2 italic">
           {" "}
           You can download the most popular models from{" "}
-          <ExternalLink
-            url="https://huggingface.co/models?sort=downloads&search=gguf"
-            label="Huggingface"
-          />
-          .
+          <ExternalLink href="https://huggingface.co/models?sort=downloads&search=gguf">
+            Huggingface.
+          </ExternalLink>
         </p>
         {newModelPath && (
           <p className="mt-2 text-xs text-gray-100">

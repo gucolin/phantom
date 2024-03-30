@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@material-tailwind/react";
 import Modal from "../../Generic/Modal";
-import { LLMModelConfig } from "electron/main/Store/storeConfig";
+import { LLMConfig } from "electron/main/Store/storeConfig";
 import CustomSelect from "../../Generic/Select";
 import { errorToString } from "@/functions/error";
 import ExternalLink from "../../Generic/ExternalLink";
@@ -33,15 +33,16 @@ const RemoteLLMSetupModal: React.FC<RemoteLLMModalProps> = ({
   const [currentError, setCurrentError] = useState<string>("");
 
   const handleSave = async () => {
-    const modelConfig: LLMModelConfig = {
+    const modelConfig: LLMConfig = {
       type: "openai",
+      modelName,
       contextLength: parseInt(selectedContextLength),
       apiURL,
       apiKey,
       engine: "openai",
     };
     try {
-      await window.electronStore.addOrUpdateLLM(modelName, modelConfig);
+      await window.llm.addOrUpdateLLM(modelConfig);
       parentOnClose();
     } catch (error) {
       console.error("Failed to save remote model configuration:", error);
@@ -62,15 +63,13 @@ const RemoteLLMSetupModal: React.FC<RemoteLLMModalProps> = ({
         <h2 className="font-semibold mb-0 text-white">Remote LLM Setup</h2>
         <p className="text-gray-100 mb-2 mt-2 text-sm">
           Connect with a custom OpenAI-like API endpoint like{" "}
-          <ExternalLink
-            url="https://github.com/oobabooga/text-generation-webui/wiki/12-%E2%80%90-OpenAI-API"
-            label="Oobabooga"
-          />
+          <ExternalLink href="https://github.com/oobabooga/text-generation-webui/wiki/12-%E2%80%90-OpenAI-API">
+            Oobabooga
+          </ExternalLink>
           . A guide to doing this is on the{" "}
-          <ExternalLink
-            url="https://www.reorproject.org/docs/documentation/openai-like-api"
-            label="docs"
-          />
+          <ExternalLink href="https://www.reorproject.org/docs/documentation/openai-like-api">
+            docs
+          </ExternalLink>
           .
         </p>
 
