@@ -15,6 +15,7 @@ import { StoreSchema } from "./Store/storeConfig";
 // import contextMenus from "./contextMenus";
 import * as lancedb from "vectordb";
 import {
+  markdownExtensions,
   startWatchingDirectory,
   updateFileListForRenderer,
 } from "./Files/Filesystem";
@@ -32,6 +33,7 @@ import { registerFileHandlers } from "./Files/registerFilesHandler";
 import { RepopulateTableWithMissingItems } from "./database/TableHelperFunctions";
 import WindowsManager from "./windowManager";
 import { errorToString } from "./Generic/error";
+import { addExtensionToFilenameIfNoExtensionPresent } from "./Generic/path";
 
 const store = new Store<StoreSchema>();
 // store.clear(); // clear store for testing
@@ -119,7 +121,7 @@ ipcMain.handle("open-file-dialog", async (event, extensions) => {
   }
 });
 
-ipcMain.on("index-files-in-directory", async (event) => {
+ipcMain.handle("index-files-in-directory", async (event) => {
   try {
     console.log("Indexing files in directory");
     const windowInfo = windowsManager.getWindowInfoForContents(event.sender);
@@ -145,7 +147,10 @@ ipcMain.on("index-files-in-directory", async (event) => {
     const win = BrowserWindow.fromWebContents(event.sender);
 
     if (win) {
-      startWatchingDirectory(win, windowInfo.vaultDirectoryForWindow);
+      windowsManager.watcher = startWatchingDirectory(
+        win,
+        windowInfo.vaultDirectoryForWindow
+      );
       updateFileListForRenderer(win, windowInfo.vaultDirectoryForWindow);
     }
     event.sender.send("indexing-progress", 1);
@@ -162,7 +167,7 @@ ipcMain.on("index-files-in-directory", async (event) => {
   }
 });
 
-ipcMain.on("show-context-menu-file-item", (event, file) => {
+ipcMain.handle("show-context-menu-file-item", (event, file) => {
   const menu = new Menu();
   menu.append(
     new MenuItem({
@@ -170,6 +175,35 @@ ipcMain.on("show-context-menu-file-item", (event, file) => {
       click: () => {
         console.log(file.path);
         event.sender.send("delete-file-listener", file.path);
+      },
+    })
+  );
+  menu.append(
+    new MenuItem({
+      label: "Rename",
+      click: () => {
+        console.log(file.path);
+        event.sender.send("rename-file-listener", file.path);
+      },
+    })
+  );
+
+  menu.append(
+    new MenuItem({
+      label: "Create a flashcard set",
+      click: () => {
+        console.log("creating: ", file.path);
+        event.sender.send("create-flashcard-file-listener", file.path);
+      },
+    })
+  );
+
+  menu.append(
+    new MenuItem({
+      label: "Add file to chat context",
+      click: () => {
+        console.log("creating: ", file.path);
+        event.sender.send("add-file-to-chat-listener", file.path);
       },
     })
   );
@@ -182,7 +216,7 @@ ipcMain.on("show-context-menu-file-item", (event, file) => {
   }
 });
 
-ipcMain.on("open-external", (event, url) => {
+ipcMain.handle("open-external", (event, url) => {
   shell.openExternal(url);
 });
 
@@ -190,10 +224,37 @@ ipcMain.handle("get-platform", async () => {
   return process.platform;
 });
 
-ipcMain.on("open-new-window", () => {
+ipcMain.handle("open-new-window", () => {
   windowsManager.createWindow(store, preload, url, indexHtml);
 });
 
 ipcMain.handle("path-basename", (event, pathString: string) => {
   return path.basename(pathString);
 });
+
+ipcMain.handle("path-sep", () => {
+  return path.sep;
+});
+
+ipcMain.handle("join-path", (event, ...args) => {
+  return path.join(...args);
+});
+
+ipcMain.handle("path-dirname", (event, pathString: string) => {
+  return path.dirname(pathString) + path.sep;
+});
+
+ipcMain.handle("path-relative", (event, from: string, to: string) => {
+  return path.relative(from, to);
+});
+
+ipcMain.handle(
+  "add-extension-if-no-extension-present",
+  (event, pathString: string) => {
+    return addExtensionToFilenameIfNoExtensionPresent(
+      pathString,
+      markdownExtensions,
+      ".md"
+    );
+  }
+);

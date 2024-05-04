@@ -1,8 +1,10 @@
+import { ChatHistory } from "@/components/Chat/Chat";
+
 export interface BaseLLMConfig {
   modelName: string;
   contextLength: number;
   errorMsg?: string;
-  engine: "openai" | "llamacpp";
+  engine: "openai";
 }
 
 export interface OpenAILLMConfig extends BaseLLMConfig {
@@ -10,13 +12,7 @@ export interface OpenAILLMConfig extends BaseLLMConfig {
   apiURL: string;
   apiKey: string;
 }
-
-export interface LocalLLMConfig extends BaseLLMConfig {
-  type: "local";
-  localPath: string;
-}
-
-export type LLMConfig = OpenAILLMConfig | LocalLLMConfig;
+export type LLMConfig = OpenAILLMConfig;
 
 export type LLMGenerationParameters = {
   maxTokens?: number;
@@ -47,6 +43,7 @@ export type HardwareConfig = {
 };
 
 export interface StoreSchema {
+  hasUserOpenedAppBefore: boolean;
   schemaVersion: number;
   user: {
     vaultDirectories: string[];
@@ -61,9 +58,13 @@ export interface StoreSchema {
   RAG?: RAGConfig;
   hardware: HardwareConfig;
   llmGenerationParameters: LLMGenerationParameters;
+  chatHistories: {
+    [vaultDir: string]: ChatHistory[];
+  };
 }
 
 export enum StoreKeys {
+  hasUserOpenedAppBefore = "hasUserOpenedAppBefore",
   SchemaVersion = "schemaVersion",
   DirectoryFromPreviousSession = "user.directoryFromPreviousSession",
   LLMs = "LLMs",
@@ -73,4 +74,5 @@ export enum StoreKeys {
   MaxRAGExamples = "RAG.maxRAGExamples",
   Hardware = "hardware",
   LLMGenerationParameters = "llmGenerationParameters",
+  ChatHistories = "chatHistories",
 }

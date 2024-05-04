@@ -10,15 +10,40 @@ export function removeFileExtension(filename: string): string {
   return filename.substring(0, filename.lastIndexOf("."));
 }
 
-export const getInvalidCharacterInFileName = async (filename: string): Promise<string | null> => {
+export const getInvalidCharacterInFilePath = async (
+  filename: string
+): Promise<string | null> => {
   let invalidCharacters: RegExp;
   const platform = await window.electron.getPlatform();
 
   switch (platform) {
-    case 'win32':
+    case "win32":
+      invalidCharacters = /["*:<>?|]/;
+      break;
+    case "darwin":
+      invalidCharacters = /[:]/;
+      break;
+    default:
+      invalidCharacters = /$^/;
+      break;
+  }
+
+  const idx = filename.search(invalidCharacters);
+
+  return idx === -1 ? null : filename[idx];
+};
+
+export const getInvalidCharacterInFileName = async (
+  filename: string
+): Promise<string | null> => {
+  let invalidCharacters: RegExp;
+  const platform = await window.electron.getPlatform();
+
+  switch (platform) {
+    case "win32":
       invalidCharacters = /["*/:<>?\\|]/;
       break;
-    case 'darwin':
+    case "darwin":
       invalidCharacters = /[/:]/;
       break;
     default:
@@ -29,4 +54,4 @@ export const getInvalidCharacterInFileName = async (filename: string): Promise<s
   const idx = filename.search(invalidCharacters);
 
   return idx === -1 ? null : filename[idx];
-}
+};

@@ -7,10 +7,12 @@ import {
 } from "electron/main/Store/storeConfig";
 
 import {
+  ChatCompletion,
   ChatCompletionChunk,
   ChatCompletionMessageParam,
 } from "openai/resources/chat/completions";
 import { customFetchUsingElectronNetStreaming } from "../../Generic/network";
+import { ChatMessageToDisplay } from "@/components/Chat/Chat";
 
 export class OpenAIModelSessionService implements LLMSessionService {
   public getTokenizer = (llmName: string): ((text: string) => number[]) => {
@@ -30,10 +32,35 @@ export class OpenAIModelSessionService implements LLMSessionService {
     throw new Error("Abort not yet implemented.");
   }
 
-  async streamingResponse(
+  async response(
     modelName: string,
     modelConfig: OpenAILLMConfig,
     messageHistory: ChatCompletionMessageParam[],
+    isJSONMode: boolean,
+    generationParams?: LLMGenerationParameters
+  ): Promise<ChatCompletion> {
+    const openai = new OpenAI({
+      apiKey: modelConfig.apiKey,
+      baseURL: modelConfig.apiURL,
+      fetch: customFetchUsingElectronNetStreaming,
+    });
+    const response = await openai.chat.completions.create({
+      model: modelName,
+      messages: messageHistory,
+      max_tokens: generationParams?.maxTokens,
+      temperature: generationParams?.temperature,
+      response_format: {
+        type: isJSONMode ? "json_object" : "text",
+      },
+    });
+    return response;
+  }
+
+  async streamingResponse(
+    modelName: string,
+    modelConfig: OpenAILLMConfig,
+    isJSONMode: boolean,
+    messageHistory: ChatMessageToDisplay[],
     handleChunk: (chunk: ChatCompletionChunk) => void,
     generationParams?: LLMGenerationParameters
   ): Promise<void> {
@@ -43,18 +70,29 @@ export class OpenAIModelSessionService implements LLMSessionService {
       baseURL: modelConfig.apiURL,
       fetch: customFetchUsingElectronNetStreaming,
     });
-    // const tokenEncoding = this.getTokenizer(modelName);
+    console.log("messageHistory: ");
 
     const stream = await openai.chat.completions.create({
       model: modelName,
-      messages: messageHistory,
+      messages: messageHistory.map(cleanMessage),
       stream: true,
       max_tokens: generationParams?.maxTokens,
       temperature: generationParams?.temperature,
+      response_format: {
+        type: isJSONMode ? "json_object" : "text",
+      },
     });
 
     for await (const chunk of stream) {
       handleChunk(chunk);
     }
   }
+}
+
+function cleanMessage(
+  message: ChatMessageToDisplay
+): ChatCompletionMessageParam {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { messageType, context, visibleContent, ...cleanMessage } = message;
+  return cleanMessage;
 }

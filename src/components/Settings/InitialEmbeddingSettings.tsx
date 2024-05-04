@@ -47,15 +47,15 @@ const InitialEmbeddingModelSettings: React.FC<
   //   //   }
   //   // }
   // }, []);
-  const updateEmbeddingModels = () => {
+  const updateEmbeddingModels = async () => {
     console.log("updating embedding models");
-    const embeddingModels = window.electronStore.getEmbeddingModels();
+    const embeddingModels = await window.electronStore.getEmbeddingModels();
     console.log("embedding models", embeddingModels);
     if (embeddingModels) {
       setEmbeddingModels(embeddingModels);
     }
     console.log("getting default model");
-    const defaultModel = window.electronStore.getDefaultEmbeddingModel();
+    const defaultModel = await window.electronStore.getDefaultEmbeddingModel();
     console.log("default model", defaultModel);
     if (defaultModel) {
       setSelectedModel(defaultModel);
@@ -94,7 +94,7 @@ const InitialEmbeddingModelSettings: React.FC<
         options={Object.keys(embeddingModels).map((model) => {
           return { label: model, value: model };
         })}
-        value={selectedModel}
+        selectedValue={selectedModel}
         onChange={handleChangeOnModelSelect}
         addButton={{
           label: "Attach a Custom Embedding Model",

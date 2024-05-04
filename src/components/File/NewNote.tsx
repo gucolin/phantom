@@ -1,20 +1,18 @@
 import React, { useState } from "react";
 import Modal from "../Generic/Modal";
 import { Button } from "@material-tailwind/react";
-import { toast } from "react-toastify";
-import { errorToString } from "@/functions/error";
-import { getInvalidCharacterInFileName } from "@/functions/strings";
+import { getInvalidCharacterInFilePath } from "@/functions/strings";
 
 interface NewNoteComponentProps {
   isOpen: boolean;
   onClose: () => void;
-  onFileSelect: (path: string) => void;
+  openRelativePath: (path: string) => void;
 }
 
 const NewNoteComponent: React.FC<NewNoteComponentProps> = ({
   isOpen,
   onClose,
-  onFileSelect,
+  openRelativePath,
 }) => {
   const [fileName, setFileName] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -23,7 +21,7 @@ const NewNoteComponent: React.FC<NewNoteComponentProps> = ({
     const newName = e.target.value;
     setFileName(newName);
 
-    getInvalidCharacterInFileName(newName).then((invalidCharacter) => {
+    getInvalidCharacterInFilePath(newName).then((invalidCharacter) => {
       if (invalidCharacter) {
         setErrorMessage(
           `The character [${invalidCharacter}] cannot be included in note name.`
@@ -35,26 +33,11 @@ const NewNoteComponent: React.FC<NewNoteComponentProps> = ({
   };
 
   const sendNewNoteMsg = async () => {
-    try {
-      if (!fileName || errorMessage) {
-        return;
-      }
-      const normalizedFileName = fileName.slice(0, 255).replace(/\\/g, "/");
-      const fullPath = await window.files.joinPath(
-        window.electronStore.getUserDirectory(),
-        normalizedFileName + ".md"
-      );
-      window.files.createFile(fullPath, `# ${fileName}\n`);
-      onFileSelect(fullPath);
-      onClose();
-    } catch (e) {
-      toast.error(errorToString(e), {
-        className: "mt-5",
-        autoClose: false,
-        closeOnClick: false,
-        draggable: false,
-      });
+    if (!fileName || errorMessage) {
+      return;
     }
+    openRelativePath(fileName);
+    onClose();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {

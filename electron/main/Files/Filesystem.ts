@@ -24,6 +24,23 @@ export function GetFilesInfoList(directory: string): FileInfo[] {
   return fileInfoList;
 }
 
+export function GetFilesInfoListForListOfPaths(paths: string[]): FileInfo[] {
+  // so perhaps for this function, all we maybe need to do is remove
+  const fileInfoTree = paths.map((path) => GetFilesInfoTree(path)).flat();
+  const fileInfoList = flattenFileInfoTree(fileInfoTree);
+
+  // remove duplicates:
+  const uniquePaths = new Set();
+  const fileInfoListWithoutDuplicates = fileInfoList.filter((fileInfo) => {
+    if (uniquePaths.has(fileInfo.path)) {
+      return false;
+    }
+    uniquePaths.add(fileInfo.path);
+    return true;
+  });
+  return fileInfoListWithoutDuplicates;
+}
+
 export function GetFilesInfoTree(
   pathInput: string,
   parentRelativePath: string = ""
@@ -85,7 +102,7 @@ export function GetFilesInfoTree(
 
   return fileInfoTree;
 }
-function isHidden(fileName: string): boolean {
+export function isHidden(fileName: string): boolean {
   return fileName.startsWith(".");
 }
 export function flattenFileInfoTree(tree: FileInfoTree): FileInfo[] {
@@ -131,7 +148,7 @@ export function createFileRecursive(
 export function startWatchingDirectory(
   win: BrowserWindow,
   directoryToWatch: string
-): void {
+): chokidar.FSWatcher | undefined {
   try {
     const watcher = chokidar.watch(directoryToWatch, {
       ignoreInitial: true,
@@ -155,6 +172,7 @@ export function startWatchingDirectory(
       .on("unlinkDir", (path) => handleFileEvent("directory removed", path));
 
     // No 'ready' event handler is needed here, as we're ignoring initial scan
+    return watcher;
   } catch (error) {
     console.error("Error setting up file watcher:", error);
   }

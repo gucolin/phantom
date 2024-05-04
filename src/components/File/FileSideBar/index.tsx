@@ -3,22 +3,58 @@ import React, { useEffect, useState } from "react";
 import { FixedSizeList as List, ListChildComponentProps } from "react-window";
 import { isFileNodeDirectory } from "./fileOperations";
 import { FileItem } from "./FileItem";
-import { useFileInfoTree } from "./hooks/use-file-info-tree";
+import RenameNoteModal from "../RenameNote";
+import RenameDirModal from "../RenameDirectory";
 
 interface FileListProps {
+  files: FileInfoTree;
+  expandedDirectories: Map<string, boolean>;
+  handleDirectoryToggle: (path: string) => void;
   selectedFilePath: string | null;
   onFileSelect: (path: string) => void;
+  renameFile: (oldFilePath: string, newFilePath: string) => Promise<void>;
+  noteToBeRenamed: string;
+  setNoteToBeRenamed: (note: string) => void;
+  fileDirToBeRenamed: string;
+  setFileDirToBeRenamed: (dir: string) => void;
+  listHeight?: number;
 }
 
 export const FileSidebar: React.FC<FileListProps> = ({
+  files,
+  expandedDirectories,
+  handleDirectoryToggle,
   selectedFilePath,
   onFileSelect,
+  renameFile,
+  noteToBeRenamed,
+  setNoteToBeRenamed,
+  fileDirToBeRenamed,
+  setFileDirToBeRenamed,
+  listHeight,
 }) => {
-  const { files, expandedDirectories, handleDirectoryToggle } =
-    useFileInfoTree(selectedFilePath);
-
   return (
     <div className="flex flex-col h-below-titlebar text-white overflow-y-auto overflow-x-hidden">
+      {noteToBeRenamed && (
+        <RenameNoteModal
+          isOpen={!!noteToBeRenamed}
+          onClose={() => setNoteToBeRenamed("")}
+          fullNoteName={noteToBeRenamed}
+          renameNote={async ({ path, newNoteName }) => {
+            await renameFile(path, newNoteName);
+          }}
+        />
+      )}
+      {fileDirToBeRenamed && (
+        <RenameDirModal
+          isOpen={!!fileDirToBeRenamed}
+          onClose={() => setFileDirToBeRenamed("")}
+          fullDirName={fileDirToBeRenamed}
+          renameDir={async ({ path, newDirName: newNoteName }) => {
+            await renameFile(path, newNoteName);
+          }}
+        />
+      )}
       <FileExplorer
         files={files}
         selectedFilePath={selectedFilePath}
@@ -26,6 +62,7 @@ export const FileSidebar: React.FC<FileListProps> = ({
         handleDragStart={handleDragStartImpl}
         expandedDirectories={expandedDirectories}
         handleDirectoryToggle={handleDirectoryToggle}
+        lheight={listHeight}
       />
     </div>
   );
@@ -43,6 +80,7 @@ interface FileExplorerProps {
   handleDragStart: (e: React.DragEvent, file: FileInfoNode) => void;
   expandedDirectories: Map<string, boolean>;
   handleDirectoryToggle: (path: string) => void;
+  lheight?: number;
 }
 
 const FileExplorer: React.FC<FileExplorerProps> = ({
@@ -52,12 +90,13 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   handleDragStart,
   expandedDirectories,
   handleDirectoryToggle,
+  lheight,
 }) => {
-  const [listHeight, setListHeight] = useState(window.innerHeight);
+  const [listHeight, setListHeight] = useState(lheight ?? window.innerHeight);
 
   useEffect(() => {
     const updateHeight = () => {
-      setListHeight(window.innerHeight);
+      setListHeight(lheight ?? window.innerHeight);
     };
 
     window.addEventListener("resize", updateHeight);

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
+import { Portal } from "@headlessui/react";
 import "react-toastify/dist/ReactToastify.css";
 import FileEditorContainer from "./components/FileEditorContainer";
 import IndexingProgress from "./components/IndexingProgress";
@@ -40,12 +41,18 @@ const App: React.FC<AppProps> = () => {
   }, []);
 
   useEffect(() => {
-    const initialDirectory = window.electronStore.getUserDirectory();
-    const defaultEmbedFunc = window.electronStore.getDefaultEmbeddingModel();
-    if (initialDirectory && defaultEmbedFunc) {
-      setUserHasConfiguredSettingsForIndexing(true);
-      window.database.indexFilesInDirectory();
-    }
+    const fetchSettings = async () => {
+      const [initialDirectory, defaultEmbedFunc] = await Promise.all([
+        window.electronStore.getVaultDirectoryForWindow(),
+        window.electronStore.getDefaultEmbeddingModel(),
+      ]);
+      if (initialDirectory && defaultEmbedFunc) {
+        setUserHasConfiguredSettingsForIndexing(true);
+        window.database.indexFilesInDirectory();
+      }
+    };
+
+    fetchSettings();
   }, []);
 
   const handleAllInitialSettingsAreReady = () => {
@@ -55,7 +62,9 @@ const App: React.FC<AppProps> = () => {
 
   return (
     <div className="max-h-screen font-sans bg-neutral-800">
-      <ToastContainer className="mt-4" />
+      <Portal>
+        <ToastContainer className="mt-4" />
+      </Portal>
       {userHasConfiguredSettingsForIndexing ? (
         indexingProgress < 1 ? (
           <IndexingProgress indexingProgress={indexingProgress} />

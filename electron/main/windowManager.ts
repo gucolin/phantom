@@ -2,6 +2,7 @@ import { BrowserWindow, WebContents, screen, shell } from "electron";
 import { LanceDBTableWrapper } from "./database/LanceTableWrapper";
 import Store from "electron-store";
 import { StoreKeys, StoreSchema } from "./Store/storeConfig";
+import chokidar from "chokidar";
 
 type WindowInfo = {
   windowID: number;
@@ -12,6 +13,8 @@ type WindowInfo = {
 class WindowsManager {
   activeWindows: WindowInfo[] = [];
   private errorStringsToSendWindow: string[] = [];
+
+  watcher: chokidar.FSWatcher | undefined;
 
   async createWindow(
     store: Store<StoreSchema>,
@@ -113,10 +116,11 @@ class WindowsManager {
 
   getWindowInfoForContents(webContents: WebContents): WindowInfo | null {
     const windowID = this.getBrowserWindowId(webContents);
+    console.log("window id is: ", windowID);
     if (windowID === null) {
       return null;
     }
-
+    console.log("active windows: ", this.activeWindows);
     const windowInfo = this.activeWindows.find((w) => w.windowID === windowID);
     return windowInfo || null;
   }

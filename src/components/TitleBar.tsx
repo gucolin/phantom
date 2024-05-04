@@ -1,26 +1,25 @@
-import NewNoteComponent from "./File/NewNote";
 import React, { useEffect, useState } from "react";
 import { PiSidebar, PiSidebarFill } from "react-icons/pi";
-
-import { BsChatLeftDots, BsFillChatLeftDotsFill } from "react-icons/bs";
+import FileHistoryNavigator from "./File/FileSideBar/FileHistoryBar";
 
 export const titleBarHeight = "30px";
 interface TitleBarProps {
   onFileSelect: (path: string) => void;
-  chatbotOpen: boolean;
+  currentFilePath: string | null;
   similarFilesOpen: boolean;
-  toggleChatbot: () => void;
   toggleSimilarFiles: () => void;
+  history: string[];
+  setHistory: (string: string[]) => void;
 }
 
 const TitleBar: React.FC<TitleBarProps> = ({
   onFileSelect,
-  chatbotOpen,
+  currentFilePath,
   similarFilesOpen,
-  toggleChatbot,
   toggleSimilarFiles,
+  history,
+  setHistory,
 }) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [platform, setPlatform] = useState("");
 
   useEffect(() => {
@@ -31,9 +30,7 @@ const TitleBar: React.FC<TitleBarProps> = ({
 
     fetchPlatform();
   }, []);
-  const toggleModal = () => {
-    setIsModalOpen(!isModalOpen);
-  };
+
   return (
     <div
       id="customTitleBar"
@@ -41,59 +38,41 @@ const TitleBar: React.FC<TitleBarProps> = ({
       style={{ backgroundColor: "#303030" }}
     >
       <div
-        className=" flex"
+        className="flex mt-[1px]"
         style={
-          platform === "darwin"
-            ? { marginLeft: "70px" }
-            : { marginLeft: "10px" }
+          platform === "darwin" ? { marginLeft: "65px" } : { marginLeft: "2px" }
         }
       >
-        <NewNoteComponent
-          isOpen={isModalOpen}
-          onClose={toggleModal}
+        <FileHistoryNavigator
+          history={history}
+          setHistory={setHistory}
           onFileSelect={onFileSelect}
+          currentPath={currentFilePath || ""}
         />
       </div>
-
       <div
-        className="flex justify-content-right align-items-right"
-        style={platform === "win32" ? { marginRight: "8.5rem" } : {}}
+        className="flex justify-content-right align-items-right mt-[0.5px]"
+        style={
+          platform === "win32"
+            ? { marginRight: "8.5rem" }
+            : { marginRight: "0.3rem" }
+        }
       >
         {similarFilesOpen ? (
           <PiSidebarFill
-
-            className="text-gray-100 cursor-pointer mt-[0.04rem]"
+            className="text-gray-100 cursor-pointer mt-[0.04rem] transform scale-x-[-1]"
             size={28}
             onClick={toggleSimilarFiles}
             title="Hide Similar Files"
           />
         ) : (
           <PiSidebar
-
-            className="text-gray-100 cursor-pointer mt-[0.04rem]"
+            className="text-gray-100 cursor-pointer mt-[0.04rem] transform scale-x-[-1]"
             size={28}
             onClick={toggleSimilarFiles}
             title="Show Similar Files"
           />
         )}
-
-        <div className="mt-[0.34rem] mr-[0.5rem] ml-[0.3rem]">
-          {chatbotOpen ? (
-            <BsFillChatLeftDotsFill
-              size={22}
-              className="text-gray-100 cursor-pointer"
-              onClick={toggleChatbot}
-              title="Open Chatbot"
-            />
-          ) : (
-            <BsChatLeftDots
-              className="text-gray-100 cursor-pointer "
-              size={22}
-              onClick={toggleChatbot}
-              title="Close Chatbot"
-            />
-          )}
-        </div>
       </div>
     </div>
   );
